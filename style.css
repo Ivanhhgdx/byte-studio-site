@@ -111,16 +111,12 @@ a {
   text-decoration: none;
 }
 
-.brand-mark {
-  display: grid;
-  width: 0.72rem;
-  height: 0.72rem;
-  border-radius: 2px;
-  background:
-    linear-gradient(90deg, var(--blue) 42%, transparent 42% 58%, var(--blue) 58%),
-    linear-gradient(var(--blue) 42%, transparent 42% 58%, var(--blue) 58%);
-  box-shadow: 0 0 22px rgba(132, 213, 255, 0.36);
-  transform: rotate(45deg);
+.brand-logo {
+  display: block;
+  flex: 0 0 auto;
+  width: 1.35rem;
+  height: 1.35rem;
+  object-fit: contain;
 }
 
 .site-nav {
@@ -164,7 +160,7 @@ a {
   width: 100vw;
   height: 100svh;
   cursor: crosshair;
-  touch-action: none;
+  touch-action: pan-y pinch-zoom;
 }
 
 .hero-vignette {

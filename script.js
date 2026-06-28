@@ -1110,6 +1110,23 @@ function updatePointerFromEvent(event) {
   pointer.y = -(y * 2 - 1);
 }
 
+function deactivatePointer(resetMotion = false) {
+  pointerInside = false;
+  lastPointerTime = 0;
+
+  if (!resetMotion) return;
+
+  pointerSpeed = 0;
+  pointerDeltaX = 0;
+  pointerDeltaY = 0;
+  localMouseVelocity.set(0, 0, 0);
+}
+
+function releaseTouchPointer(event) {
+  if (event.pointerType === "mouse") return;
+  deactivatePointer(true);
+}
+
 function applyMouseImpulse() {
   if (!pointerInside) return;
 
@@ -1479,10 +1496,10 @@ function resetInitialScroll() {
 window.addEventListener("resize", resize);
 window.addEventListener("scroll", updateHeroProgress, { passive: true });
 window.addEventListener("pointermove", updatePointerFromEvent, { passive: true });
-window.addEventListener("pointerleave", () => {
-  pointerInside = false;
-  lastPointerTime = 0;
-});
+window.addEventListener("pointerup", releaseTouchPointer, { passive: true });
+window.addEventListener("pointercancel", releaseTouchPointer, { passive: true });
+window.addEventListener("pointerleave", () => deactivatePointer(true));
+window.addEventListener("blur", () => deactivatePointer(true));
 window.addEventListener("pagehide", destroy, { once: true });
 window.addEventListener("pageshow", resetInitialScroll, { once: true });
 
