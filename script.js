@@ -1079,18 +1079,18 @@ function updateHeroProgress() {
 
   const scrollable = Math.max(hero.offsetHeight - window.innerHeight, 1);
   const raw = clamp01(-hero.getBoundingClientRect().top / scrollable);
-  const revealStart = compactLayout ? 0.12 : 0.08;
-  const revealDuration = compactLayout ? 0.58 : 0.3;
+  const revealStart = compactLayout ? 0.1 : 0.08;
+  const revealDuration = compactLayout ? 0.46 : 0.3;
   const reveal = smooth01(clamp01((raw - revealStart) / revealDuration));
   scrollScatterTarget = smooth01(clamp01((raw - 0.7) / 0.3));
 
   revealTarget = reveal;
 }
 
-function updatePointerFromEvent(event) {
+function updatePointerPosition(clientX, clientY, motionBoost = 1) {
   const rect = canvas.getBoundingClientRect();
-  const x = (event.clientX - rect.left) / rect.width;
-  const y = (event.clientY - rect.top) / rect.height;
+  const x = (clientX - rect.left) / rect.width;
+  const y = (clientY - rect.top) / rect.height;
 
   pointerInside = x >= 0 && x <= 1 && y >= 0 && y <= 1;
 
@@ -1100,10 +1100,10 @@ function updatePointerFromEvent(event) {
   if (lastPointerTime > 0) {
     const seconds = Math.max((now - lastPointerTime) / 1000, 0.016);
     const distance = Math.hypot(x - lastPointerX, y - lastPointerY);
-    const instantSpeed = Math.min(distance / seconds, 8);
+    const instantSpeed = Math.min((distance / seconds) * motionBoost, 8);
     pointerSpeed += (instantSpeed - pointerSpeed) * 0.55;
-    pointerDeltaX = (x - lastPointerX) / seconds;
-    pointerDeltaY = (y - lastPointerY) / seconds;
+    pointerDeltaX = ((x - lastPointerX) / seconds) * motionBoost;
+    pointerDeltaY = ((y - lastPointerY) / seconds) * motionBoost;
   }
 
   lastPointerX = x;
@@ -1111,6 +1111,22 @@ function updatePointerFromEvent(event) {
   lastPointerTime = now;
   pointer.x = x * 2 - 1;
   pointer.y = -(y * 2 - 1);
+}
+
+function updatePointerFromEvent(event) {
+  if (event.pointerType === "touch") return;
+  updatePointerPosition(event.clientX, event.clientY);
+}
+
+function updateTouchFromEvent(event) {
+  const touch = event.touches[0] ?? event.changedTouches[0];
+  if (!touch) return;
+  updatePointerPosition(touch.clientX, touch.clientY, 1.35);
+}
+
+function startTouchInteraction(event) {
+  lastPointerTime = 0;
+  updateTouchFromEvent(event);
 }
 
 function deactivatePointer(resetMotion = false) {
@@ -1253,7 +1269,7 @@ function updateParticles(delta, elapsed) {
   let activeChaos = 0;
   let displacedCount = 0;
   const scrollEase = 1 - Math.exp(-delta * 6.2);
-  const revealEase = 1 - Math.exp(-delta * (compactLayout ? 3.8 : 7.2));
+  const revealEase = 1 - Math.exp(-delta * (compactLayout ? 5.2 : 7.2));
 
   revealProgress += (revealTarget - revealProgress) * revealEase;
   scrollScatterProgress +=
@@ -1502,7 +1518,10 @@ window.addEventListener("resize", resize);
 window.addEventListener("scroll", updateHeroProgress, { passive: true });
 window.addEventListener("pointermove", updatePointerFromEvent, { passive: true });
 window.addEventListener("pointerup", releaseTouchPointer, { passive: true });
-window.addEventListener("pointercancel", releaseTouchPointer, { passive: true });
+window.addEventListener("touchstart", startTouchInteraction, { passive: true });
+window.addEventListener("touchmove", updateTouchFromEvent, { passive: true });
+window.addEventListener("touchend", releaseTouchPointer, { passive: true });
+window.addEventListener("touchcancel", releaseTouchPointer, { passive: true });
 window.addEventListener("pointerleave", () => deactivatePointer(true));
 window.addEventListener("blur", () => deactivatePointer(true));
 window.addEventListener("pagehide", destroy, { once: true });
