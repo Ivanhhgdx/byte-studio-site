@@ -3,374 +3,111 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Байт — студия цифровых сервисов. Проектируем и разрабатываем современные цифровые продукты для бизнеса."
-    />
+    <meta name="description" content="Байт — студия цифровых сервисов. Проектируем сайты, сервисы и внутренние системы." />
     <meta name="theme-color" content="#050506" />
     <title>Байт — Студия цифровых сервисов</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Onest:wght@400;450;500;550;600;650&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&amp;family=Onest:wght@400;450;500;550;600;650&amp;display=swap" rel="stylesheet" />
     <link rel="icon" href="./assets/byte-logo-white.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./style.css?v=byte-studio-3" />
+    <link rel="stylesheet" href="./style.css?v=byte-site-5" />
   </head>
   <body>
     <main>
       <section class="hero" aria-label="Байт — Студия цифровых сервисов">
         <div class="hero-stage">
           <header class="site-header">
-            <a class="brand" href="#" aria-label="Байт, на главную">
+            <a class="brand" href="./index.html" aria-label="Байт, на главную">
               <img class="brand-logo" src="./assets/byte-logo-white.svg" alt="" aria-hidden="true" />
               <span>Байт</span>
             </a>
-
             <nav class="site-nav" aria-label="Основная навигация">
-              <a href="#solutions">Решения</a>
-              <a href="#process">Как работаем</a>
-              <a href="#projects">Проекты</a>
-              <a href="#about">О студии</a>
-              <a href="#contact">Контакты</a>
+              <a href="./services.html">Услуги</a>
+              <a href="./projects.html">Проекты</a>
+              <a href="./process.html">Как работаем</a>
+              <a href="./about.html">О студии</a>
             </nav>
-
             <a class="header-action" href="#contact">Рассказать о проекте</a>
+            <details class="mobile-menu">
+              <summary>Меню</summary>
+              <nav aria-label="Мобильная навигация">
+                <a href="./services.html">Услуги</a>
+                <a href="./projects.html">Проекты</a>
+                <a href="./process.html">Как работаем</a>
+                <a href="./about.html">О студии</a>
+                <a href="#contact">Рассказать о проекте</a>
+              </nav>
+            </details>
           </header>
 
-          <div class="scene-wrap" aria-hidden="true">
-            <canvas id="cube-canvas"></canvas>
-          </div>
+          <div class="scene-wrap" aria-hidden="true"><canvas id="cube-canvas"></canvas></div>
           <div class="hero-vignette" aria-hidden="true"></div>
-
           <div class="hero-copy">
             <h1>Байт</h1>
             <p class="hero-label">Студия цифровых сервисов</p>
-            <p class="hero-text">От идеи до готового цифрового продукта.</p>
-            <a class="primary-button" href="#contact">
-              <span>Рассказать о проекте</span>
-              <span aria-hidden="true">↗</span>
-            </a>
+            <p class="hero-text">Проектируем сайты, сервисы и внутренние системы.</p>
+            <a class="primary-button" href="#contact"><span>Рассказать о проекте</span><span aria-hidden="true">↗</span></a>
           </div>
-
           <p class="scroll-note" aria-hidden="true">Листайте, чтобы продолжить</p>
         </div>
       </section>
 
-      <section class="dark-section solutions-section" id="solutions" aria-labelledby="solutions-title">
+      <section class="dark-section home-services" aria-labelledby="services-title">
         <div class="section-shell">
           <div class="section-heading" data-reveal>
-            <p class="section-index">01 / С чем приходят</p>
+            <p class="section-index">01 / Что делаем</p>
             <div>
-              <h2 id="solutions-title">Не продаём набор услуг.<br />Решаем конкретную задачу.</h2>
-              <p class="section-lead">
-                Можно прийти с идеей в заметках, старым сайтом или процессом,
-                который держится на таблицах. Сначала поймём, что должно измениться,
-                и только потом выберем форму продукта.
-              </p>
+              <h2 id="services-title">Цифровые продукты<br />для конкретных задач.</h2>
+              <p class="section-lead">Подключаемся, когда нужно запустить новый продукт, пересобрать существующий или упростить внутреннюю работу компании.</p>
             </div>
           </div>
+          <div class="home-service-list" data-stagger>
+            <a href="./services.html#products" data-reveal><span>01</span><h3>Новые продукты</h3><p>От первой версии до полноценного сервиса.</p><i>↗</i></a>
+            <a href="./services.html#websites" data-reveal><span>02</span><h3>Сайты и интерфейсы</h3><p>Структура, содержание, дизайн и разработка.</p><i>↗</i></a>
+            <a href="./services.html#systems" data-reveal><span>03</span><h3>Внутренние системы</h3><p>Инструменты для процессов, данных и команд.</p><i>↗</i></a>
+            <a href="./services.html#ai" data-reveal><span>04</span><h3>ИИ и автоматизация</h3><p>Решения для повторяющейся и ручной работы.</p><i>↗</i></a>
+          </div>
+          <a class="text-link" href="./services.html" data-reveal>Все направления <span>↗</span></a>
+        </div>
+      </section>
 
-          <div class="solution-grid" data-stagger>
-            <article class="solution-card" data-reveal>
-              <div class="solution-top">
-                <span>01</span>
-                <p>Запустить новое</p>
-              </div>
-              <h3>Превращаем идею в продукт, который уже можно показать людям.</h3>
-              <p class="solution-copy">Структура, прототип, интерфейс и рабочая первая версия — без месяцев подготовки «идеального» ТЗ.</p>
-              <ul>
-                <li>MVP и веб-сервисы</li>
-                <li>Личные кабинеты</li>
-                <li>Проверка гипотез</li>
-              </ul>
-            </article>
-            <article class="solution-card" data-reveal>
-              <div class="solution-top">
-                <span>02</span>
-                <p>Пересобрать существующее</p>
-              </div>
-              <h3>Убираем шум и делаем так, чтобы продукт было легко понять.</h3>
-              <p class="solution-copy">Пересматриваем логику, содержание и визуальный язык. Не «освежаем дизайн», а исправляем путь пользователя.</p>
-              <ul>
-                <li>Сайты и лендинги</li>
-                <li>Редизайн интерфейсов</li>
-                <li>Дизайн-системы</li>
-              </ul>
-            </article>
-            <article class="solution-card" data-reveal>
-              <div class="solution-top">
-                <span>03</span>
-                <p>Убрать ручную работу</p>
-              </div>
-              <h3>Собираем внутренний инструмент вместо цепочки чатов и таблиц.</h3>
-              <p class="solution-copy">Соединяем данные, роли и действия в одном понятном сценарии — чтобы команда тратила время на работу, а не на её обслуживание.</p>
-              <ul>
-                <li>Внутренние системы</li>
-                <li>Интеграции и API</li>
-                <li>Автоматизация процессов</li>
-              </ul>
-            </article>
-            <article class="solution-card" data-reveal>
-              <div class="solution-top">
-                <span>04</span>
-                <p>Добавить ИИ по делу</p>
-              </div>
-              <h3>Встраиваем ИИ там, где он сокращает путь, а не украшает презентацию.</h3>
-              <p class="solution-copy">Находим повторяемую умственную работу, проектируем контроль результата и встраиваем инструмент в привычный процесс.</p>
-              <ul>
-                <li>ИИ-ассистенты</li>
-                <li>Поиск и обработка данных</li>
-                <li>Генерация и классификация</li>
-              </ul>
-            </article>
+      <section class="approach-section home-principle" aria-labelledby="principle-title">
+        <div class="section-shell home-principle-grid">
+          <p class="section-index" data-reveal>02 / Подход</p>
+          <div data-reveal>
+            <h2 id="principle-title">Функция задаёт форму.</h2>
+            <p>Начинаем со сценариев и ограничений продукта. Затем собираем структуру, находим визуальный язык и выбираем технологию. Так каждое решение можно объяснить задачей, а не вкусом или привычкой.</p>
+            <a class="text-link text-link-dark" href="./process.html">Как устроена работа <span>↗</span></a>
           </div>
         </div>
       </section>
 
-      <section class="approach-section" id="approach" aria-labelledby="approach-title">
-        <div class="section-shell">
-          <div class="section-heading section-heading-dark" data-reveal>
-            <p class="section-index">02 / Наш фильтр</p>
-            <h2 id="approach-title">Простота — не стиль.<br />Это результат проделанной работы.</h2>
-          </div>
-
-          <ol class="principles">
-            <li data-reveal>
-              <span>01</span>
-              <div>
-                <p>Сначала смысл.</p>
-                <small>Формулируем задачу и критерий результата до того, как обсуждать цвет кнопки.</small>
-              </div>
-            </li>
-            <li data-reveal>
-              <span>02</span>
-              <div>
-                <p>Один экран — одна мысль.</p>
-                <small>Убираем всё, что спорит за внимание и не помогает человеку двигаться дальше.</small>
-              </div>
-            </li>
-            <li data-reveal>
-              <span>03</span>
-              <div>
-                <p>Функция задаёт форму.</p>
-                <small>Дизайн объясняет продукт, разработка не ломает дизайн, технология не становится самоцелью.</small>
-              </div>
-            </li>
-            <li data-reveal>
-              <span>04</span>
-              <div>
-                <p>Запуск — часть работы.</p>
-                <small>Проверяем реальное поведение, исправляем слабые места и оставляем продукт понятным для развития.</small>
-              </div>
-            </li>
-          </ol>
-        </div>
-      </section>
-
-      <section class="process-section" id="process" aria-labelledby="process-title">
-        <div class="section-shell">
-          <div class="section-heading" data-reveal>
-            <p class="section-index">03 / Процесс</p>
-            <div>
-              <h2 id="process-title">Каждый этап заканчивается<br />чем-то осязаемым.</h2>
-              <p class="section-lead">
-                Работа идёт короткими циклами. Вы видите продукт по ходу,
-                принимаете решения на фактах и не ждёте большого финального показа.
-              </p>
-            </div>
-          </div>
-
-          <ol class="process-line" data-reveal>
-            <li>
-              <span>01</span>
-              <div>
-                <p>Разобраться</p>
-                <small>Цель, пользователи, ограничения и приоритетный сценарий.</small>
-              </div>
-            </li>
-            <li>
-              <span>02</span>
-              <div>
-                <p>Собрать логику</p>
-                <small>Структура, прототип и карта решений без визуального шума.</small>
-              </div>
-            </li>
-            <li>
-              <span>03</span>
-              <div>
-                <p>Сделать</p>
-                <small>Интерфейс и разработка идут рядом, а не передаются по цепочке.</small>
-              </div>
-            </li>
-            <li>
-              <span>04</span>
-              <div>
-                <p>Запустить</p>
-                <small>Тестирование, публикация, аналитика и понятный следующий шаг.</small>
-              </div>
-            </li>
-          </ol>
-        </div>
-      </section>
-
-      <section class="projects-section" id="projects" aria-labelledby="projects-title">
+      <section class="projects-section home-projects" aria-labelledby="projects-title">
         <div class="section-shell">
           <div class="section-heading section-heading-dark projects-heading" data-reveal>
-            <div>
-              <p class="section-index">04 / Проекты</p>
-              <h2 id="projects-title">Избранная работа.</h2>
-            </div>
-            <p class="section-aside">Меньше проектов.<br />Больше внимания.</p>
+            <div><p class="section-index">03 / Проекты</p><h2 id="projects-title">Несколько примеров.</h2></div>
+            <a class="text-link text-link-dark" href="./projects.html">Смотреть проекты <span>↗</span></a>
           </div>
-
           <div class="projects-grid" data-stagger>
             <article class="project-card project-card-wide" data-reveal>
-              <div class="project-visual visual-aurora" aria-hidden="true">
-                <div class="aurora-orbit"></div>
-                <div class="aurora-card">
-                  <span></span><span></span><span></span>
-                </div>
-              </div>
-              <div class="project-meta">
-                <div>
-                  <p>Финтех-платформа</p>
-                  <h3>Север</h3>
-                </div>
-                <span>Продукт / 2026</span>
-              </div>
+              <div class="project-visual visual-aurora" aria-hidden="true"><div class="aurora-orbit"></div><div class="aurora-card"><span></span><span></span><span></span></div></div>
+              <div class="project-meta"><div><p>Финтех-платформа</p><h3>Север</h3></div><span>Продукт / 2026</span></div>
             </article>
-
             <article class="project-card" data-reveal>
-              <div class="project-visual visual-voice" aria-hidden="true">
-                <div class="voice-ring"></div>
-                <div class="voice-wave">
-                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-                </div>
-              </div>
-              <div class="project-meta">
-                <div>
-                  <p>ИИ-инструмент</p>
-                  <h3>Контекст</h3>
-                </div>
-                <span>Концепт / 2026</span>
-              </div>
-            </article>
-
-            <article class="project-card" data-reveal>
-              <div class="project-visual visual-flow" aria-hidden="true">
-                <div class="flow-panel">
-                  <span></span><span></span><span></span>
-                </div>
-                <div class="flow-cursor">↗</div>
-              </div>
-              <div class="project-meta">
-                <div>
-                  <p>Рабочая система</p>
-                  <h3>Поток</h3>
-                </div>
-                <span>Система / 2025</span>
-              </div>
+              <div class="project-visual visual-voice" aria-hidden="true"><div class="voice-ring"></div><div class="voice-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+              <div class="project-meta"><div><p>ИИ-инструмент</p><h3>Контекст</h3></div><span>Концепт / 2026</span></div>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="technology-section" aria-labelledby="technology-title">
-        <div class="section-shell technology-grid">
-          <div data-reveal>
-            <p class="section-index">05 / Основа</p>
-            <h2 id="technology-title">Технология должна<br />не мешать продукту жить.</h2>
-            <p class="technology-note">
-              Выбираем стек по сроку жизни, нагрузке и команде, которая будет развивать продукт.
-              Быстрый запуск не должен превращаться в дорогую переделку через полгода.
-            </p>
-          </div>
-          <ul class="technology-list" data-reveal>
-            <li>TypeScript</li>
-            <li>React</li>
-            <li>Next.js</li>
-            <li>Node.js</li>
-            <li>Python</li>
-            <li>PostgreSQL</li>
-          </ul>
-        </div>
-      </section>
-
-      <section class="about-section" id="about" aria-labelledby="about-title">
-        <div class="section-shell">
-          <div class="about-grid">
-            <p class="section-index" data-reveal>06 / О студии</p>
-            <div class="about-copy" data-reveal>
-              <p class="about-kicker">Байт — компактная студия цифровых сервисов.</p>
-              <h2 id="about-title">Мы любим момент, когда сложную систему наконец можно объяснить одним экраном.</h2>
-              <p class="about-text">
-                Работаем на стыке проектирования, дизайна и разработки. Поэтому решение
-                не теряется между людьми: тот, кто понимает задачу, участвует и в том,
-                как она будет выглядеть, работать и развиваться после запуска.
-              </p>
-            </div>
-          </div>
-
-          <div class="studio-values" data-stagger>
-            <article data-reveal>
-              <span>01</span>
-              <h3>Без испорченного телефона</h3>
-              <p>Обсуждаете решения с теми, кто их проектирует и реализует.</p>
-            </article>
-            <article data-reveal>
-              <span>02</span>
-              <h3>Без ритуалов ради ритуалов</h3>
-              <p>Документы, встречи и инструменты появляются только когда помогают принять решение.</p>
-            </article>
-            <article data-reveal>
-              <span>03</span>
-              <h3>Без исчезновения после релиза</h3>
-              <p>Передаём логику продукта, помогаем с запуском и планируем развитие по реальным данным.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="fit-section" aria-labelledby="fit-title">
-        <div class="section-shell fit-grid">
-          <div data-reveal>
-            <p class="section-index">07 / Нам по пути</p>
-            <h2 id="fit-title">Если вам нужен не просто экран, а ясный работающий продукт.</h2>
-          </div>
-          <ul class="fit-list" data-reveal>
-            <li><span>Есть задача, но нет готового ТЗ</span><small>Поможем сформулировать и разложить на приоритеты.</small></li>
-            <li><span>Важно быстро увидеть рабочую версию</span><small>Соберём ядро продукта и проверим его раньше.</small></li>
-            <li><span>Нужен прямой разговор без прослойки</span><small>Решения обсуждаются с командой продукта.</small></li>
-            <li><span>Готовы убирать лишнее</span><small>Простота потребует выбора — мы поможем его сделать.</small></li>
-          </ul>
-        </div>
-      </section>
-
-      <section class="faq-section" id="faq" aria-labelledby="faq-title">
-        <div class="section-shell faq-grid">
-          <div data-reveal>
-            <p class="section-index">08 / Коротко о важном</p>
-            <h2 id="faq-title">До первого сообщения.</h2>
-          </div>
-          <div class="faq-list" data-reveal>
-            <details>
-              <summary>Можно прийти только с идеей?</summary>
-              <p>Да. Большое ТЗ не нужно. Достаточно описать, для кого продукт, какую проблему он должен решить и что уже известно сейчас.</p>
-            </details>
-            <details>
-              <summary>Вы делаете только дизайн или разработку тоже?</summary>
-              <p>Можно пройти весь путь со студией или подключить нас к отдельному этапу. Но лучшие решения получаются, когда проектирование и разработка встречаются как можно раньше.</p>
-            </details>
-            <details>
-              <summary>Когда станет понятен срок?</summary>
-              <p>После короткого разбора задачи. Мы выделим обязательное ядро, покажем этапы и назовём реалистичный диапазон — без обещания даты до понимания объёма.</p>
-            </details>
-            <details>
-              <summary>Что будет после запуска?</summary>
-              <p>Проверим ключевые сценарии, подключим аналитику, зафиксируем логику решений и предложим следующий цикл улучшений по данным, а не по ощущениям.</p>
-            </details>
+      <section class="about-section home-about" aria-labelledby="about-title">
+        <div class="section-shell about-grid">
+          <p class="section-index" data-reveal>04 / О студии</p>
+          <div class="about-copy" data-reveal>
+            <h2 id="about-title">Байт объединяет дизайн и разработку в одной команде.</h2>
+            <p class="about-text">Мы вместе отвечаем за структуру, интерфейс и техническую реализацию проекта. Люди, которые принимают решение, участвуют и в его воплощении — поэтому смысл не теряется между этапами.</p>
+            <a class="text-link" href="./about.html">Подробнее о студии <span>↗</span></a>
           </div>
         </div>
       </section>
@@ -378,50 +115,30 @@
       <section class="contact-section" id="contact" aria-labelledby="contact-title">
         <div class="section-shell">
           <div class="contact-heading" data-reveal>
-            <p class="section-index">09 / Начать</p>
-            <h2 id="contact-title">Не нужен<br />идеальный бриф.</h2>
-            <p class="contact-intro">Расскажите, что хочется изменить. Первый шаг — разобраться вместе.</p>
+            <p class="section-index">05 / Обсудить проект</p>
+            <h2 id="contact-title">Начнём<br />с задачи.</h2>
+            <p class="contact-intro">Опишите, что нужно сделать или изменить. Большой бриф не требуется.</p>
           </div>
-
           <div class="contact-grid">
             <form class="contact-form" data-contact-form data-reveal>
-              <label>
-                <span>Как вас зовут</span>
-                <input type="text" name="name" autocomplete="name" placeholder="Имя" required />
-              </label>
-              <label>
-                <span>Как связаться</span>
-                <input type="text" name="contact" placeholder="Telegram или email" required />
-              </label>
-              <label>
-                <span>О проекте</span>
-                <textarea name="message" rows="2" placeholder="Пара слов о задаче" required></textarea>
-              </label>
-              <button class="submit-button" type="submit">
-                <span>Отправить</span>
-                <span aria-hidden="true">↗</span>
-              </button>
+              <label><span>Как вас зовут</span><input type="text" name="name" autocomplete="name" placeholder="Имя" required /></label>
+              <label><span>Как связаться</span><input type="text" name="contact" placeholder="Telegram или email" required /></label>
+              <label><span>О проекте</span><textarea name="message" rows="2" placeholder="Пара слов о задаче" required></textarea></label>
+              <button class="submit-button" type="submit"><span>Отправить</span><span aria-hidden="true">↗</span></button>
             </form>
-
             <div class="direct-contact" data-reveal>
               <p>Можно написать напрямую</p>
               <a href="https://t.me/byte_studio" target="_blank" rel="noreferrer">Telegram ↗</a>
               <a href="mailto:hello@byte.studio">hello@byte.studio ↗</a>
             </div>
           </div>
-
           <footer class="site-footer">
-            <a class="brand brand-footer" href="#" aria-label="Байт, наверх">
-              <img class="brand-logo" src="./assets/byte-logo-white.svg" alt="" aria-hidden="true" />
-              <span>Байт</span>
-            </a>
-            <p>Студия цифровых сервисов</p>
-            <p>© 2026</p>
+            <a class="brand brand-footer" href="./index.html" aria-label="Байт, на главную"><img class="brand-logo" src="./assets/byte-logo-white.svg" alt="" aria-hidden="true" /><span>Байт</span></a>
+            <p>Студия цифровых сервисов</p><p>© 2026</p>
           </footer>
         </div>
       </section>
     </main>
-
     <script type="module" src="./script.js?v=byte-touch-4"></script>
   </body>
 </html>
