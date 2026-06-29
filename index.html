@@ -15,7 +15,8 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Onest:wght@400;450;500;550;600;650&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./style.css?v=byte-mobile-touch-2" />
+    <link rel="icon" href="./assets/byte-logo-white.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./style.css?v=byte-studio-3" />
   </head>
   <body>
     <main>
@@ -23,14 +24,15 @@
         <div class="hero-stage">
           <header class="site-header">
             <a class="brand" href="#" aria-label="Байт, на главную">
-              <img class="brand-logo" src="./assets/byte-logo-white.png" alt="" aria-hidden="true" />
+              <img class="brand-logo" src="./assets/byte-logo-white.svg" alt="" aria-hidden="true" />
               <span>Байт</span>
             </a>
 
             <nav class="site-nav" aria-label="Основная навигация">
-              <a href="#products">Что создаём</a>
-              <a href="#approach">Подход</a>
+              <a href="#solutions">Решения</a>
+              <a href="#process">Как работаем</a>
               <a href="#projects">Проекты</a>
+              <a href="#about">О студии</a>
               <a href="#contact">Контакты</a>
             </nav>
 
@@ -56,37 +58,72 @@
         </div>
       </section>
 
-      <section class="dark-section products-section" id="products" aria-labelledby="products-title">
+      <section class="dark-section solutions-section" id="solutions" aria-labelledby="solutions-title">
         <div class="section-shell">
           <div class="section-heading" data-reveal>
-            <p class="section-index">01 / Что создаём</p>
-            <h2 id="products-title">Цифровые продукты,<br />которыми удобно пользоваться.</h2>
+            <p class="section-index">01 / С чем приходят</p>
+            <div>
+              <h2 id="solutions-title">Не продаём набор услуг.<br />Решаем конкретную задачу.</h2>
+              <p class="section-lead">
+                Можно прийти с идеей в заметках, старым сайтом или процессом,
+                который держится на таблицах. Сначала поймём, что должно измениться,
+                и только потом выберем форму продукта.
+              </p>
+            </div>
           </div>
 
-          <div class="product-grid" data-stagger>
-            <article class="product-item" data-reveal>
-              <span>01</span>
-              <h3>Сайты</h3>
+          <div class="solution-grid" data-stagger>
+            <article class="solution-card" data-reveal>
+              <div class="solution-top">
+                <span>01</span>
+                <p>Запустить новое</p>
+              </div>
+              <h3>Превращаем идею в продукт, который уже можно показать людям.</h3>
+              <p class="solution-copy">Структура, прототип, интерфейс и рабочая первая версия — без месяцев подготовки «идеального» ТЗ.</p>
+              <ul>
+                <li>MVP и веб-сервисы</li>
+                <li>Личные кабинеты</li>
+                <li>Проверка гипотез</li>
+              </ul>
             </article>
-            <article class="product-item" data-reveal>
-              <span>02</span>
-              <h3>Веб-приложения</h3>
+            <article class="solution-card" data-reveal>
+              <div class="solution-top">
+                <span>02</span>
+                <p>Пересобрать существующее</p>
+              </div>
+              <h3>Убираем шум и делаем так, чтобы продукт было легко понять.</h3>
+              <p class="solution-copy">Пересматриваем логику, содержание и визуальный язык. Не «освежаем дизайн», а исправляем путь пользователя.</p>
+              <ul>
+                <li>Сайты и лендинги</li>
+                <li>Редизайн интерфейсов</li>
+                <li>Дизайн-системы</li>
+              </ul>
             </article>
-            <article class="product-item" data-reveal>
-              <span>03</span>
-              <h3>Цифровые сервисы</h3>
+            <article class="solution-card" data-reveal>
+              <div class="solution-top">
+                <span>03</span>
+                <p>Убрать ручную работу</p>
+              </div>
+              <h3>Собираем внутренний инструмент вместо цепочки чатов и таблиц.</h3>
+              <p class="solution-copy">Соединяем данные, роли и действия в одном понятном сценарии — чтобы команда тратила время на работу, а не на её обслуживание.</p>
+              <ul>
+                <li>Внутренние системы</li>
+                <li>Интеграции и API</li>
+                <li>Автоматизация процессов</li>
+              </ul>
             </article>
-            <article class="product-item" data-reveal>
-              <span>04</span>
-              <h3>Автоматизация</h3>
-            </article>
-            <article class="product-item" data-reveal>
-              <span>05</span>
-              <h3>Внутренние системы</h3>
-            </article>
-            <article class="product-item" data-reveal>
-              <span>06</span>
-              <h3>ИИ-инструменты</h3>
+            <article class="solution-card" data-reveal>
+              <div class="solution-top">
+                <span>04</span>
+                <p>Добавить ИИ по делу</p>
+              </div>
+              <h3>Встраиваем ИИ там, где он сокращает путь, а не украшает презентацию.</h3>
+              <p class="solution-copy">Находим повторяемую умственную работу, проектируем контроль результата и встраиваем инструмент в привычный процесс.</p>
+              <ul>
+                <li>ИИ-ассистенты</li>
+                <li>Поиск и обработка данных</li>
+                <li>Генерация и классификация</li>
+              </ul>
             </article>
           </div>
         </div>
@@ -95,30 +132,38 @@
       <section class="approach-section" id="approach" aria-labelledby="approach-title">
         <div class="section-shell">
           <div class="section-heading section-heading-dark" data-reveal>
-            <p class="section-index">02 / Подход</p>
-            <h2 id="approach-title">Хороший продукт не требует лишних объяснений.</h2>
+            <p class="section-index">02 / Наш фильтр</p>
+            <h2 id="approach-title">Простота — не стиль.<br />Это результат проделанной работы.</h2>
           </div>
 
           <ol class="principles">
             <li data-reveal>
               <span>01</span>
-              <p>Мы создаём продукты,<br />а не страницы.</p>
+              <div>
+                <p>Сначала смысл.</p>
+                <small>Формулируем задачу и критерий результата до того, как обсуждать цвет кнопки.</small>
+              </div>
             </li>
             <li data-reveal>
               <span>02</span>
-              <p>Простота важнее<br />сложности.</p>
+              <div>
+                <p>Один экран — одна мысль.</p>
+                <small>Убираем всё, что спорит за внимание и не помогает человеку двигаться дальше.</small>
+              </div>
             </li>
             <li data-reveal>
               <span>03</span>
-              <p>Каждая деталь<br />должна иметь смысл.</p>
+              <div>
+                <p>Функция задаёт форму.</p>
+                <small>Дизайн объясняет продукт, разработка не ломает дизайн, технология не становится самоцелью.</small>
+              </div>
             </li>
             <li data-reveal>
               <span>04</span>
-              <p>Пользователь важнее<br />технологий.</p>
-            </li>
-            <li data-reveal>
-              <span>05</span>
-              <p>Качество важнее<br />количества.</p>
+              <div>
+                <p>Запуск — часть работы.</p>
+                <small>Проверяем реальное поведение, исправляем слабые места и оставляем продукт понятным для развития.</small>
+              </div>
             </li>
           </ol>
         </div>
@@ -128,25 +173,43 @@
         <div class="section-shell">
           <div class="section-heading" data-reveal>
             <p class="section-index">03 / Процесс</p>
-            <h2 id="process-title">Четыре шага<br />от мысли до запуска.</h2>
+            <div>
+              <h2 id="process-title">Каждый этап заканчивается<br />чем-то осязаемым.</h2>
+              <p class="section-lead">
+                Работа идёт короткими циклами. Вы видите продукт по ходу,
+                принимаете решения на фактах и не ждёте большого финального показа.
+              </p>
+            </div>
           </div>
 
           <ol class="process-line" data-reveal>
             <li>
               <span>01</span>
-              <p>Идея</p>
+              <div>
+                <p>Разобраться</p>
+                <small>Цель, пользователи, ограничения и приоритетный сценарий.</small>
+              </div>
             </li>
             <li>
               <span>02</span>
-              <p>Проектирование</p>
+              <div>
+                <p>Собрать логику</p>
+                <small>Структура, прототип и карта решений без визуального шума.</small>
+              </div>
             </li>
             <li>
               <span>03</span>
-              <p>Разработка</p>
+              <div>
+                <p>Сделать</p>
+                <small>Интерфейс и разработка идут рядом, а не передаются по цепочке.</small>
+              </div>
             </li>
             <li>
               <span>04</span>
-              <p>Запуск</p>
+              <div>
+                <p>Запустить</p>
+                <small>Тестирование, публикация, аналитика и понятный следующий шаг.</small>
+              </div>
             </li>
           </ol>
         </div>
@@ -217,8 +280,12 @@
       <section class="technology-section" aria-labelledby="technology-title">
         <div class="section-shell technology-grid">
           <div data-reveal>
-            <p class="section-index">05 / Технологии</p>
-            <h2 id="technology-title">Инструменты —<br />по задаче.</h2>
+            <p class="section-index">05 / Основа</p>
+            <h2 id="technology-title">Технология должна<br />не мешать продукту жить.</h2>
+            <p class="technology-note">
+              Выбираем стек по сроку жизни, нагрузке и команде, которая будет развивать продукт.
+              Быстрый запуск не должен превращаться в дорогую переделку через полгода.
+            </p>
           </div>
           <ul class="technology-list" data-reveal>
             <li>TypeScript</li>
@@ -231,16 +298,79 @@
         </div>
       </section>
 
-      <section class="team-section" id="team" aria-labelledby="team-title">
-        <div class="section-shell team-grid">
-          <p class="section-index" data-reveal>06 / Команда</p>
-          <div class="team-copy" data-reveal>
-            <h2 id="team-title">
-              <span>Небольшая команда.</span>
-              <span>Прямой диалог.</span>
-              <span>Сильный результат.</span>
-            </h2>
-            <p>Дизайн и разработка работают как одно целое — от первого решения до последней детали.</p>
+      <section class="about-section" id="about" aria-labelledby="about-title">
+        <div class="section-shell">
+          <div class="about-grid">
+            <p class="section-index" data-reveal>06 / О студии</p>
+            <div class="about-copy" data-reveal>
+              <p class="about-kicker">Байт — компактная студия цифровых сервисов.</p>
+              <h2 id="about-title">Мы любим момент, когда сложную систему наконец можно объяснить одним экраном.</h2>
+              <p class="about-text">
+                Работаем на стыке проектирования, дизайна и разработки. Поэтому решение
+                не теряется между людьми: тот, кто понимает задачу, участвует и в том,
+                как она будет выглядеть, работать и развиваться после запуска.
+              </p>
+            </div>
+          </div>
+
+          <div class="studio-values" data-stagger>
+            <article data-reveal>
+              <span>01</span>
+              <h3>Без испорченного телефона</h3>
+              <p>Обсуждаете решения с теми, кто их проектирует и реализует.</p>
+            </article>
+            <article data-reveal>
+              <span>02</span>
+              <h3>Без ритуалов ради ритуалов</h3>
+              <p>Документы, встречи и инструменты появляются только когда помогают принять решение.</p>
+            </article>
+            <article data-reveal>
+              <span>03</span>
+              <h3>Без исчезновения после релиза</h3>
+              <p>Передаём логику продукта, помогаем с запуском и планируем развитие по реальным данным.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="fit-section" aria-labelledby="fit-title">
+        <div class="section-shell fit-grid">
+          <div data-reveal>
+            <p class="section-index">07 / Нам по пути</p>
+            <h2 id="fit-title">Если вам нужен не просто экран, а ясный работающий продукт.</h2>
+          </div>
+          <ul class="fit-list" data-reveal>
+            <li><span>Есть задача, но нет готового ТЗ</span><small>Поможем сформулировать и разложить на приоритеты.</small></li>
+            <li><span>Важно быстро увидеть рабочую версию</span><small>Соберём ядро продукта и проверим его раньше.</small></li>
+            <li><span>Нужен прямой разговор без прослойки</span><small>Решения обсуждаются с командой продукта.</small></li>
+            <li><span>Готовы убирать лишнее</span><small>Простота потребует выбора — мы поможем его сделать.</small></li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="faq-section" id="faq" aria-labelledby="faq-title">
+        <div class="section-shell faq-grid">
+          <div data-reveal>
+            <p class="section-index">08 / Коротко о важном</p>
+            <h2 id="faq-title">До первого сообщения.</h2>
+          </div>
+          <div class="faq-list" data-reveal>
+            <details>
+              <summary>Можно прийти только с идеей?</summary>
+              <p>Да. Большое ТЗ не нужно. Достаточно описать, для кого продукт, какую проблему он должен решить и что уже известно сейчас.</p>
+            </details>
+            <details>
+              <summary>Вы делаете только дизайн или разработку тоже?</summary>
+              <p>Можно пройти весь путь со студией или подключить нас к отдельному этапу. Но лучшие решения получаются, когда проектирование и разработка встречаются как можно раньше.</p>
+            </details>
+            <details>
+              <summary>Когда станет понятен срок?</summary>
+              <p>После короткого разбора задачи. Мы выделим обязательное ядро, покажем этапы и назовём реалистичный диапазон — без обещания даты до понимания объёма.</p>
+            </details>
+            <details>
+              <summary>Что будет после запуска?</summary>
+              <p>Проверим ключевые сценарии, подключим аналитику, зафиксируем логику решений и предложим следующий цикл улучшений по данным, а не по ощущениям.</p>
+            </details>
           </div>
         </div>
       </section>
@@ -248,8 +378,9 @@
       <section class="contact-section" id="contact" aria-labelledby="contact-title">
         <div class="section-shell">
           <div class="contact-heading" data-reveal>
-            <p class="section-index">07 / Контакты</p>
-            <h2 id="contact-title">Есть идея?<br />Давайте сделаем.</h2>
+            <p class="section-index">09 / Начать</p>
+            <h2 id="contact-title">Не нужен<br />идеальный бриф.</h2>
+            <p class="contact-intro">Расскажите, что хочется изменить. Первый шаг — разобраться вместе.</p>
           </div>
 
           <div class="contact-grid">
@@ -281,7 +412,7 @@
 
           <footer class="site-footer">
             <a class="brand brand-footer" href="#" aria-label="Байт, наверх">
-              <img class="brand-logo" src="./assets/byte-logo-white.png" alt="" aria-hidden="true" />
+              <img class="brand-logo" src="./assets/byte-logo-white.svg" alt="" aria-hidden="true" />
               <span>Байт</span>
             </a>
             <p>Студия цифровых сервисов</p>
@@ -291,6 +422,6 @@
       </section>
     </main>
 
-    <script type="module" src="./script.js?v=byte-mobile-touch-2"></script>
+    <script type="module" src="./script.js?v=byte-studio-3"></script>
   </body>
 </html>

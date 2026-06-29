@@ -80,6 +80,7 @@ let morphQueued = false;
 let freshInteraction = false;
 let animationFrame = 0;
 let revealProgress = 0;
+let revealTarget = 0;
 let scrollScatterProgress = 0;
 let scrollScatterTarget = 0;
 let introStartTime = 0;
@@ -1078,10 +1079,12 @@ function updateHeroProgress() {
 
   const scrollable = Math.max(hero.offsetHeight - window.innerHeight, 1);
   const raw = clamp01(-hero.getBoundingClientRect().top / scrollable);
-  const reveal = smooth01(clamp01((raw - 0.08) / 0.3));
+  const revealStart = compactLayout ? 0.12 : 0.08;
+  const revealDuration = compactLayout ? 0.58 : 0.3;
+  const reveal = smooth01(clamp01((raw - revealStart) / revealDuration));
   scrollScatterTarget = smooth01(clamp01((raw - 0.7) / 0.3));
 
-  revealProgress = reveal;
+  revealTarget = reveal;
 }
 
 function updatePointerFromEvent(event) {
@@ -1250,7 +1253,9 @@ function updateParticles(delta, elapsed) {
   let activeChaos = 0;
   let displacedCount = 0;
   const scrollEase = 1 - Math.exp(-delta * 6.2);
+  const revealEase = 1 - Math.exp(-delta * (compactLayout ? 3.8 : 7.2));
 
+  revealProgress += (revealTarget - revealProgress) * revealEase;
   scrollScatterProgress +=
     (scrollScatterTarget - scrollScatterProgress) * scrollEase;
   const copyExit = smooth01(clamp01(scrollScatterProgress));
