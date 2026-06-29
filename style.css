@@ -211,11 +211,19 @@ a {
 }
 
 .hero-text {
-  max-width: 24rem;
+  max-width: 43rem;
   margin: 0.45rem 0 0;
   color: rgba(246, 245, 240, 0.46);
   font-size: clamp(0.82rem, 0.94vw, 0.9rem);
   line-height: 1.48;
+}
+
+.hero-offer {
+  max-width: 52rem;
+  margin: 0.9rem 0 0;
+  color: rgba(246, 245, 240, 0.62);
+  font-size: clamp(0.65rem, 0.76vw, 0.74rem);
+  line-height: 1.5;
 }
 
 .primary-button,
@@ -1483,7 +1491,7 @@ a {
 
 .home-service-list a {
   display: grid;
-  grid-template-columns: 4rem minmax(220px, 0.65fr) 1fr auto;
+  grid-template-columns: 4rem minmax(270px, 0.72fr) 1fr auto;
   align-items: center;
   gap: 1.5rem;
   min-height: 9rem;
@@ -1512,7 +1520,7 @@ a {
 }
 
 .home-service-list p {
-  max-width: 21rem;
+  max-width: 39rem;
   margin: 0;
   line-height: 1.55;
 }
@@ -1568,6 +1576,138 @@ a {
 
 .home-projects {
   padding-bottom: clamp(7rem, 13vw, 12rem);
+}
+
+.section-lead-dark {
+  color: var(--muted-dark);
+}
+
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: clamp(5rem, 10vw, 9rem);
+  border-top: 1px solid var(--line-dark);
+  border-left: 1px solid var(--line-dark);
+}
+
+.task-grid article {
+  min-height: clamp(20rem, 28vw, 26rem);
+  padding: clamp(1.4rem, 3vw, 2.4rem);
+  border-right: 1px solid var(--line-dark);
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.task-grid span {
+  color: var(--muted-dark);
+  font-size: 0.68rem;
+}
+
+.task-grid h3 {
+  max-width: 14ch;
+  margin: clamp(4rem, 8vw, 7rem) 0 0;
+  color: var(--ink);
+  font-size: clamp(2rem, 4vw, 4rem);
+  font-weight: 450;
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.task-grid p {
+  max-width: 28rem;
+  margin: 1.5rem 0 0;
+  color: var(--muted-dark);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.home-process {
+  padding: clamp(7rem, 13vw, 12rem) 0;
+}
+
+.home-process-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(1rem, 2.5vw, 2.5rem);
+  margin: clamp(5rem, 10vw, 9rem) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--line-light);
+  list-style: none;
+}
+
+.home-process-list li {
+  min-height: 16rem;
+  padding: 1.2rem 0;
+  border-bottom: 1px solid var(--line-light);
+}
+
+.home-process-list span,
+.home-process-list p {
+  color: var(--muted-light);
+  font-size: 0.72rem;
+}
+
+.home-process-list h3 {
+  margin: clamp(4rem, 7vw, 6rem) 0 0;
+  font-size: clamp(1.3rem, 2.2vw, 2rem);
+  font-weight: 450;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+
+.home-process-list p {
+  max-width: 15rem;
+  margin: 1rem 0 0;
+  line-height: 1.55;
+}
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2rem, 6vw, 6rem);
+  margin-top: clamp(6rem, 11vw, 10rem);
+}
+
+.trust-grid article {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line-light);
+}
+
+.trust-grid p {
+  margin: 0;
+  color: var(--muted-light);
+  font-size: 0.7rem;
+}
+
+.trust-grid h3 {
+  max-width: 34rem;
+  margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
+  font-size: clamp(1.4rem, 2.6vw, 2.5rem);
+  font-weight: 450;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+}
+
+.contact-direct-grid {
+  align-items: start;
+}
+
+.contact-primary {
+  padding-top: 1rem;
+  border-top: 1px solid var(--line-light);
+}
+
+.contact-primary .primary-button {
+  min-width: min(100%, 20rem);
+}
+
+.contact-primary p,
+.direct-contact span {
+  display: block;
+  max-width: 31rem;
+  margin: 1.25rem 0 0;
+  color: var(--muted-light);
+  font-size: 0.78rem;
+  line-height: 1.65;
 }
 
 .home-about .about-copy h2 {
@@ -1689,9 +1829,31 @@ a {
   font-size: 0.78rem;
 }
 
+.detail-grid .service-outcome {
+  max-width: 52rem;
+  margin-top: clamp(3rem, 6vw, 5rem);
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line-light);
+  color: rgba(246, 245, 240, 0.78);
+}
+
+.detail-grid .service-outcome strong {
+  color: var(--white);
+  font-weight: 550;
+}
+
 .service-detail-light .detail-grid li {
   border-color: var(--line-dark);
   color: var(--muted-dark);
+}
+
+.service-detail-light .detail-grid .service-outcome {
+  border-color: var(--line-dark);
+  color: rgba(17, 17, 20, 0.72);
+}
+
+.service-detail-light .detail-grid .service-outcome strong {
+  color: var(--ink);
 }
 
 .about-story,
@@ -1828,6 +1990,56 @@ a {
   max-width: 30rem;
 }
 
+.formats-section {
+  padding: clamp(7rem, 13vw, 12rem) 0;
+}
+
+.formats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--line-light);
+  border-left: 1px solid var(--line-light);
+}
+
+.formats-grid article {
+  display: flex;
+  min-height: clamp(24rem, 35vw, 34rem);
+  flex-direction: column;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border-right: 1px solid var(--line-light);
+  border-bottom: 1px solid var(--line-light);
+}
+
+.formats-grid span,
+.formats-grid small {
+  color: var(--muted-light);
+  font-size: 0.7rem;
+}
+
+.formats-grid h2 {
+  max-width: 12ch;
+  margin: clamp(4rem, 8vw, 7rem) 0 0;
+  font-size: clamp(2.4rem, 5vw, 5rem);
+  font-weight: 450;
+  letter-spacing: -0.06em;
+  line-height: 0.98;
+}
+
+.formats-grid p {
+  max-width: 34rem;
+  margin: 1.5rem 0 0;
+  color: var(--muted-light);
+  font-size: clamp(0.88rem, 1.25vw, 1.05rem);
+  line-height: 1.65;
+}
+
+.formats-grid small {
+  margin-top: auto;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line-light);
+  line-height: 1.55;
+}
+
 .page-cta {
   padding: clamp(7rem, 14vw, 13rem) 0;
   background: var(--paper);
@@ -1918,6 +2130,10 @@ a {
     grid-template-columns: 3rem 0.8fr 1fr auto;
   }
 
+  .home-process-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .case-row {
     grid-template-columns: 1fr;
   }
@@ -1949,6 +2165,43 @@ a {
 
   .home-service-list h3 {
     font-size: 1.65rem;
+  }
+
+  .hero-offer {
+    max-width: 22rem;
+    font-size: 0.62rem;
+  }
+
+  .task-grid,
+  .trust-grid,
+  .formats-grid,
+  .home-process-list {
+    grid-template-columns: 1fr;
+  }
+
+  .task-grid article {
+    min-height: 18rem;
+  }
+
+  .task-grid h3 {
+    margin-top: 4rem;
+  }
+
+  .home-process-list {
+    gap: 0;
+  }
+
+  .home-process-list li {
+    min-height: auto;
+    padding: 2rem 0;
+  }
+
+  .home-process-list h3 {
+    margin-top: 2.5rem;
+  }
+
+  .formats-grid article {
+    min-height: 26rem;
   }
 
   .home-principle-grid,

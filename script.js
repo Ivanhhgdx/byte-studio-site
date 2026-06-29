@@ -1562,16 +1562,6 @@ document.querySelectorAll("[data-reveal]").forEach((element, index) => {
   revealObserver.observe(element);
 });
 
-document.querySelector("[data-contact-form]")?.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const data = new FormData(event.currentTarget);
-  const subject = encodeURIComponent(`Новый проект — ${data.get("name")}`);
-  const body = encodeURIComponent(
-    `Имя: ${data.get("name")}\nКонтакт: ${data.get("contact")}\n\nО проекте:\n${data.get("message")}`
-  );
-  window.location.href = `mailto:hello@byte.studio?subject=${subject}&body=${body}`;
-});
-
 resize();
 setSceneMode("dark", true);
 initializeScreenScatter();
