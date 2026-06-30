@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&amp;family=Onest:wght@400;450;500;550;600;650&amp;display=swap" rel="stylesheet" />
     <link rel="icon" href="./assets/byte-logo-white.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./style.css?v=byte-site-6" />
+    <link rel="stylesheet" href="./style.css?v=byte-site-7" />
   </head>
   <body>
     <main>
@@ -61,6 +61,38 @@
               <h2 id="services-title">Что можем<br />сделать для бизнеса.</h2>
               <p class="section-lead">Берём на себя смысл, интерфейс и техническую часть — от первого разбора задачи до опубликованного продукта.</p>
             </div>
+          </div>
+          <div class="capability-grid" data-stagger>
+            <article data-reveal>
+              <p>Сайты</p>
+              <ul>
+                <li>Лендинги</li>
+                <li>Корпоративные сайты</li>
+                <li>Интернет-магазины</li>
+                <li>Редизайн и доработка сайтов</li>
+                <li>Адаптивная вёрстка</li>
+              </ul>
+            </article>
+            <article data-reveal>
+              <p>Сервисы</p>
+              <ul>
+                <li>Веб-приложения и MVP</li>
+                <li>Личные кабинеты</li>
+                <li>CRM и внутренние системы</li>
+                <li>Админ-панели и дашборды</li>
+                <li>Telegram-боты и Mini Apps</li>
+              </ul>
+            </article>
+            <article data-reveal>
+              <p>Автоматизация</p>
+              <ul>
+                <li>ИИ-ассистенты</li>
+                <li>Интеграции с API и CRM</li>
+                <li>Автоматизация заявок</li>
+                <li>Обработка документов и данных</li>
+                <li>Парсеры и отчёты</li>
+              </ul>
+            </article>
           </div>
           <div class="home-service-list" data-stagger>
             <a href="./services.html#websites" data-reveal><span>01</span><h3>Сайты для компаний</h3><p>Проектируем структуру, пишем тексты, собираем дизайн и запускаем сайт, который объясняет услугу и приводит заявки.</p><i>↗</i></a>
@@ -133,14 +165,18 @@
             <h2 id="contact-title">Начнём<br />с задачи.</h2>
             <p class="contact-intro">Напишите пару слов о задаче. Ответим, зададим несколько вопросов и предложим понятный следующий шаг. Большой бриф не нужен.</p>
           </div>
-          <div class="contact-grid contact-direct-grid">
-            <div class="contact-primary" data-reveal>
-              <a class="primary-button" href="https://t.me/byte_studio" target="_blank" rel="noreferrer"><span>Написать в Telegram</span><span aria-hidden="true">↗</span></a>
-              <p>Откроется прямой диалог со студией.</p>
-            </div>
+          <div class="contact-grid">
+            <form class="contact-form" data-contact-form data-reveal>
+              <label><span>Как вас зовут</span><input type="text" name="name" autocomplete="name" placeholder="Имя" required /></label>
+              <label><span>Как связаться</span><input type="text" name="contact" autocomplete="email" placeholder="Telegram или email" required /></label>
+              <label><span>О проекте</span><textarea name="message" rows="3" placeholder="Что нужно сделать?" required></textarea></label>
+              <button class="submit-button" type="submit"><span>Отправить заявку</span><span aria-hidden="true">↗</span></button>
+              <p class="form-status" data-form-status aria-live="polite"></p>
+            </form>
             <div class="direct-contact" data-reveal>
-              <p>Что можно прислать</p>
-              <span>Ссылку на текущий сайт, пример похожего продукта или просто описание проблемы своими словами.</span>
+              <p>Или написать напрямую</p>
+              <a href="https://t.me/byte_studio" target="_blank" rel="noreferrer">Telegram ↗</a>
+              <span>Большой бриф не нужен. Достаточно пары предложений, ссылки или примера похожего продукта.</span>
             </div>
           </div>
           <footer class="site-footer">
@@ -150,6 +186,7 @@
         </div>
       </section>
     </main>
-    <script type="module" src="./script.js?v=byte-touch-5"></script>
+    <script src="./site.js?v=byte-motion-1" defer></script>
+    <script type="module" src="./script.js?v=byte-touch-6"></script>
   </body>
 </html>

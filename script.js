@@ -1500,7 +1500,11 @@ function destroy() {
 
 function resetInitialScroll() {
   if (window.location.hash) {
-    history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    requestAnimationFrame(() => {
+      document.querySelector(window.location.hash)?.scrollIntoView();
+      updateHeroProgress();
+    });
+    return;
   }
 
   const previousScrollBehavior = document.documentElement.style.scrollBehavior;
@@ -1533,33 +1537,6 @@ modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
     setSceneMode(button.dataset.sceneMode);
   });
-});
-
-const revealObserver = new IntersectionObserver(
-  (entries, observer) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add("is-visible");
-      observer.unobserve(entry.target);
-    });
-  },
-  {
-    threshold: 0.12,
-    rootMargin: "0px 0px -8% 0px",
-  }
-);
-
-document.querySelectorAll("[data-stagger]").forEach((group) => {
-  group.querySelectorAll("[data-reveal]").forEach((element, index) => {
-    element.style.setProperty("--reveal-delay", `${index * 85}ms`);
-  });
-});
-
-document.querySelectorAll("[data-reveal]").forEach((element, index) => {
-  if (!element.style.getPropertyValue("--reveal-delay")) {
-    element.style.setProperty("--reveal-delay", `${Math.min(index % 3, 2) * 60}ms`);
-  }
-  revealObserver.observe(element);
 });
 
 resize();
