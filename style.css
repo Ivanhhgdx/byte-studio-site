@@ -153,6 +153,10 @@ a {
   display: grid;
   place-items: center;
   overflow: hidden;
+  filter: blur(var(--particle-blur, 0));
+  transform: scale(var(--particle-scale, 1));
+  transform-origin: center;
+  will-change: filter, transform;
 }
 
 #cube-canvas {

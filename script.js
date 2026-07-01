@@ -7,6 +7,7 @@ if ("scrollRestoration" in history) {
 const canvas = document.querySelector("#cube-canvas");
 const hero = document.querySelector(".hero");
 const heroStage = document.querySelector(".hero-stage");
+const sceneWrap = document.querySelector(".scene-wrap");
 const darkSection = document.querySelector(".dark-section");
 const modeButtons = document.querySelectorAll("[data-scene-mode]");
 const scene = new THREE.Scene();
@@ -1279,10 +1280,15 @@ function updateParticles(delta, elapsed) {
   const copyOpacity = revealProgress * (1 - copyExit);
   const copyY = Math.round(64 - revealProgress * 64 - copyExit * 140);
   const copyScale = 0.96 + revealProgress * 0.04 - copyExit * 0.015;
+  const blurProgress = smooth01(clamp01(revealProgress)) * (1 - copyExit);
+  const particleBlur = blurProgress * (compactLayout ? 3.2 : 4);
+  const particleScale = 1 + blurProgress * 0.012;
   heroStage.style.setProperty("--copy-opacity", copyOpacity.toFixed(3));
   heroStage.style.setProperty("--copy-y", `${copyY}px`);
   heroStage.style.setProperty("--copy-scale", copyScale.toFixed(3));
   heroStage.style.setProperty("--copy-events", copyOpacity > 0.92 ? "auto" : "none");
+  sceneWrap.style.setProperty("--particle-blur", `${particleBlur.toFixed(2)}px`);
+  sceneWrap.style.setProperty("--particle-scale", particleScale.toFixed(4));
 
   const wasMorphing = morphProgress < 1;
   updateShapeMorph(delta);
