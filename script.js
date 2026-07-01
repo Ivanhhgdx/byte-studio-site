@@ -902,7 +902,7 @@ const material = new THREE.ShaderMaterial({
       float depthFade = smoothstep(-6.2, -2.1, mvPosition.z);
       float breathing = 0.5 + 0.5 * sin(uTime * 1.35 + aSeed * 6.28318);
 
-      vAlpha = mix(0.4, 1.0, depthFade) * mix(0.9, 1.0, breathing);
+      vAlpha = mix(0.5, 1.0, depthFade) * mix(0.94, 1.0, breathing);
       vGradient = position.y * 0.18 + position.x * 0.085 + position.z * 0.065;
       float pointSize = mix(3.15 + breathing * 1.25, 4.15 + breathing * 1.35, uDarkMode);
       gl_PointSize = pointSize * uPixelRatio * (6.5 / -mvPosition.z);
@@ -927,14 +927,15 @@ const material = new THREE.ShaderMaterial({
       float blueWeight = pow(0.5 + 0.5 * cos(gradientAngle - 2.0943951), 3.0);
       float cyanWeight = pow(0.5 + 0.5 * cos(gradientAngle - 4.1887902), 3.0);
       float weightSum = violetWeight + blueWeight + cyanWeight;
-      vec3 violet = vec3(0.66, 0.22, 1.0);
-      vec3 blue = vec3(0.08, 0.58, 1.0);
-      vec3 cyan = vec3(0.4, 0.94, 1.0);
+      vec3 violet = vec3(0.78, 0.12, 1.0);
+      vec3 blue = vec3(0.04, 0.64, 1.0);
+      vec3 cyan = vec3(0.18, 1.0, 1.0);
       vec3 gradientColor =
         (violet * violetWeight + blue * blueWeight + cyan * cyanWeight) / weightSum;
       vec3 lightColor = vec3(0.012, 0.013, 0.015);
-      vec3 finalColor = mix(lightColor, gradientColor, uDarkMode);
-      float finalAlpha = mix(vAlpha, min(1.0, vAlpha * 1.24), uDarkMode);
+      vec3 vividGradient = min(gradientColor * 1.18, vec3(1.0));
+      vec3 finalColor = mix(lightColor, vividGradient, uDarkMode);
+      float finalAlpha = mix(vAlpha, min(1.0, vAlpha * 1.38), uDarkMode);
 
       gl_FragColor = vec4(finalColor, finalAlpha * dotMask);
     }
