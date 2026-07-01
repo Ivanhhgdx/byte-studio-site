@@ -22,7 +22,7 @@ document.querySelectorAll(innerRevealSelectors.join(",")).forEach((element) => {
 
 document.querySelectorAll("[data-stagger]").forEach((group) => {
   group.querySelectorAll(":scope > [data-reveal]").forEach((element, index) => {
-    element.style.setProperty("--reveal-delay", `${index * 120}ms`);
+    element.style.setProperty("--reveal-delay", `${index * 80}ms`);
   });
 });
 
@@ -40,56 +40,18 @@ if (reducedMotion) {
       });
     },
     {
-      threshold: 0.16,
-      rootMargin: "0px 0px -10% 0px",
+      threshold: 0.12,
+      rootMargin: "0px 0px -6% 0px",
     }
   );
 
   revealElements.forEach((element, index) => {
     if (!element.style.getPropertyValue("--reveal-delay")) {
-      element.style.setProperty("--reveal-delay", `${Math.min(index % 3, 2) * 70}ms`);
+      element.style.setProperty("--reveal-delay", `${Math.min(index % 3, 2) * 60}ms`);
     }
     revealObserver.observe(element);
   });
 }
-
-const progressBar = document.createElement("div");
-progressBar.className = "scroll-progress";
-progressBar.setAttribute("aria-hidden", "true");
-document.body.append(progressBar);
-
-const parallaxElements = document.querySelectorAll(
-  ".section-heading h2, .contact-heading h2, .inner-page .page-hero h1"
-);
-
-parallaxElements.forEach((element) => element.classList.add("motion-parallax"));
-
-let scrollFrame = 0;
-
-function updateScrollMotion() {
-  scrollFrame = 0;
-  const scrollable = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
-  const pageProgress = Math.min(1, Math.max(0, window.scrollY / scrollable));
-  progressBar.style.transform = `scaleX(${pageProgress})`;
-
-  if (reducedMotion) return;
-
-  parallaxElements.forEach((element) => {
-    const rect = element.getBoundingClientRect();
-    const viewportProgress = (rect.top + rect.height * 0.5) / window.innerHeight;
-    const offset = Math.max(-28, Math.min(28, (0.5 - viewportProgress) * 42));
-    element.style.setProperty("--parallax-y", `${offset.toFixed(2)}px`);
-  });
-}
-
-function requestScrollMotion() {
-  if (scrollFrame) return;
-  scrollFrame = requestAnimationFrame(updateScrollMotion);
-}
-
-window.addEventListener("scroll", requestScrollMotion, { passive: true });
-window.addEventListener("resize", requestScrollMotion, { passive: true });
-updateScrollMotion();
 
 document.querySelector("[data-contact-form]")?.addEventListener("submit", (event) => {
   event.preventDefault();
