@@ -66,3 +66,24 @@ document.querySelector("[data-contact-form]")?.addEventListener("submit", (event
   button.querySelector("span:first-child").textContent = "Заявка подготовлена";
   status.textContent = "Форма работает как заглушка. Отправка в Telegram будет подключена после настройки бота.";
 });
+
+document.querySelectorAll("[data-comparison]").forEach((comparison) => {
+  const range = comparison.querySelector(".comparison-range");
+  if (!range) return;
+
+  const updateComparison = () => {
+    const value = Number(range.value);
+    comparison.style.setProperty("--comparison-position", `${value}%`);
+
+    if (value < 35) {
+      range.setAttribute("aria-valuetext", `Преимущественно показана старая версия: ${100 - value}%`);
+    } else if (value > 65) {
+      range.setAttribute("aria-valuetext", `Преимущественно показана новая версия: ${value}%`);
+    } else {
+      range.setAttribute("aria-valuetext", `Старая версия ${100 - value}%, новая версия ${value}%`);
+    }
+  };
+
+  range.addEventListener("input", updateComparison);
+  updateComparison();
+});

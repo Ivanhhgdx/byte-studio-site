@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&amp;family=Onest:wght@400;450;500;550;600;650&amp;display=swap" rel="stylesheet" />
     <link rel="icon" href="./assets/byte-logo-white.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./style.css?v=byte-particle-focus-9" />
+    <link rel="stylesheet" href="./style.css?v=byte-comparison-10" />
   </head>
   <body>
     <main>
@@ -104,10 +104,50 @@
         </div>
       </section>
 
+      <section class="comparison-section" aria-labelledby="comparison-title">
+        <div class="section-shell">
+          <div class="section-heading" data-reveal>
+            <p class="section-index">02 / До и после</p>
+            <div>
+              <h2 id="comparison-title">Один бизнес.<br />Две подачи.</h2>
+              <p class="section-lead">Демонстрация концепции редизайна мебельного сайта. Двигайте ползунок, чтобы сравнить исходную версию и премиальную подачу.</p>
+            </div>
+          </div>
+
+          <div class="comparison-card" data-comparison data-reveal style="--comparison-position: 50%;">
+            <div class="comparison-viewport">
+              <img class="comparison-image" src="./assets/comparison/slm-after.png" alt="Премиальная версия сайта мебельной компании" />
+              <div class="comparison-before" aria-hidden="true">
+                <img class="comparison-image" src="./assets/comparison/slm-before.png" alt="" />
+              </div>
+
+              <span class="comparison-label comparison-label-before">До</span>
+              <span class="comparison-label comparison-label-after">После</span>
+              <div class="comparison-divider" aria-hidden="true">
+                <span class="comparison-handle"><i>‹</i><i>›</i></span>
+              </div>
+              <input
+                class="comparison-range"
+                type="range"
+                min="0"
+                max="100"
+                value="50"
+                aria-label="Сравнить старую и новую версию сайта"
+                aria-valuetext="Показано поровну: старая и новая версия"
+              />
+            </div>
+            <div class="comparison-caption">
+              <p>Концепция редизайна</p>
+              <span>Потяните ползунок</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="approach-section home-tasks" aria-labelledby="tasks-title">
         <div class="section-shell">
           <div class="section-heading section-heading-dark" data-reveal>
-            <p class="section-index">02 / С чем можно прийти</p>
+            <p class="section-index">03 / С чем можно прийти</p>
             <div>
               <h2 id="tasks-title">От первой идеи<br />до порядка в процессах.</h2>
               <p class="section-lead section-lead-dark">Не обязательно приходить с техническим заданием. Достаточно описать, что сейчас не работает и что должно измениться.</p>
@@ -126,7 +166,7 @@
       <section class="process-section home-process" aria-labelledby="process-title">
         <div class="section-shell">
           <div class="section-heading" data-reveal>
-            <p class="section-index">03 / Как работаем</p>
+            <p class="section-index">04 / Как работаем</p>
             <div>
               <h2 id="process-title">Сначала разбираем задачу,<br />потом рисуем интерфейс.</h2>
               <p class="section-lead">Не начинаем с цвета и красивых экранов. Сначала выясняем, кто пользуется продуктом, что человек должен сделать и какой результат нужен бизнесу.</p>
@@ -145,7 +185,7 @@
 
       <section class="about-section home-about" aria-labelledby="about-title">
         <div class="section-shell about-grid">
-          <p class="section-index" data-reveal>04 / О студии</p>
+          <p class="section-index" data-reveal>05 / О студии</p>
           <div class="about-copy" data-reveal>
             <h2 id="about-title">Небольшая команда без лишнего слоя менеджмента.</h2>
             <p class="about-text">Проектирование, тексты, дизайн и разработка не передаются из отдела в отдел. Решения принимают люди, которые сами будут их воплощать — поэтому работа идёт быстрее, а смысл не теряется по дороге.</p>
@@ -161,7 +201,7 @@
       <section class="contact-section" id="contact" aria-labelledby="contact-title">
         <div class="section-shell">
           <div class="contact-heading" data-reveal>
-            <p class="section-index">05 / Обсудить проект</p>
+            <p class="section-index">06 / Обсудить проект</p>
             <h2 id="contact-title">Начнём<br />с задачи.</h2>
             <p class="contact-intro">Напишите пару слов о задаче. Ответим, зададим несколько вопросов и предложим понятный следующий шаг. Большой бриф не нужен.</p>
           </div>
@@ -186,7 +226,7 @@
         </div>
       </section>
     </main>
-    <script src="./site.js?v=byte-minimal-motion-2" defer></script>
+    <script src="./site.js?v=byte-comparison-3" defer></script>
     <script type="module" src="./script.js?v=byte-particle-focus-9"></script>
   </body>
 </html>
