@@ -209,7 +209,7 @@ a {
   font-size: clamp(9.4rem, 13vw, 13rem);
   font-weight: 550;
   letter-spacing: -0.08em;
-  line-height: 0.84;
+  line-height: 1;
 }
 
 .hero-text {
@@ -1334,7 +1334,6 @@ a {
 
   .hero-copy h1 {
     font-size: clamp(5.2rem, 24vw, 7rem);
-    line-height: 0.86;
   }
 
   .hero-copy .primary-button {
