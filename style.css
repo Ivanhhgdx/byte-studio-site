@@ -204,6 +204,7 @@ a {
 .hero-copy h1 {
   width: fit-content;
   margin: 0;
+  padding-bottom: 0.28em;
   color: var(--white);
   font-family: "Manrope", "Onest", system-ui, sans-serif;
   font-size: clamp(9.4rem, 13vw, 13rem);
