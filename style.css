@@ -1488,6 +1488,46 @@ a {
   background: #080a0d;
 }
 
+.system-video-section {
+  position: relative;
+  z-index: 3;
+  padding: clamp(7rem, 13vw, 12rem) 0;
+  background: #080a0d;
+}
+
+.system-video-frame {
+  margin: clamp(4rem, 8vw, 7rem) 0 0;
+  border-top: 1px solid var(--line-light);
+}
+
+.system-video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 1.25rem;
+  border: 0;
+  background: #111114;
+  object-fit: cover;
+}
+
+.system-video-frame figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  min-height: 4.5rem;
+  border-bottom: 1px solid var(--line-light);
+  color: var(--muted-light);
+  font-size: 0.68rem;
+}
+
+.system-video-frame figcaption span:first-child {
+  color: rgba(246, 245, 240, 0.78);
+  font-weight: 550;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .comparison-section {
   position: relative;
   z-index: 3;
@@ -2434,6 +2474,20 @@ a {
   .comparison-card {
     width: calc(100% + 2rem);
     margin-left: -1rem;
+  }
+
+  .system-video-frame {
+    width: calc(100% + 2rem);
+    margin-left: -1rem;
+  }
+
+  .system-video {
+    aspect-ratio: 4 / 3;
+  }
+
+  .system-video-frame figcaption {
+    min-height: 4rem;
+    padding-inline: 1rem;
   }
 
   .comparison-viewport {
