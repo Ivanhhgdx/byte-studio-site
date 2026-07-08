@@ -69,7 +69,8 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
   const setButtonState = () => {
     const isPlaying = !video.paused && !video.ended;
     toggle.setAttribute("aria-label", isPlaying ? "Поставить видео на паузу" : "Воспроизвести видео");
-    toggleIcon.textContent = isPlaying ? "Ⅱ" : "▶";
+    toggleIcon.classList.toggle("video-icon-play", !isPlaying);
+    toggleIcon.classList.toggle("video-icon-pause", isPlaying);
   };
 
   const setMuteState = () => {
@@ -77,7 +78,8 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
 
     const isMuted = video.muted || video.volume === 0;
     mute.setAttribute("aria-label", isMuted ? "Включить звук" : "Выключить звук");
-    muteIcon.textContent = isMuted ? "🔇" : "🔊";
+    muteIcon.classList.toggle("video-icon-sound", !isMuted);
+    muteIcon.classList.toggle("video-icon-muted", isMuted);
   };
 
   const setFullscreenState = () => {
@@ -85,7 +87,8 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
 
     const isFullscreen = document.fullscreenElement === player || document.webkitFullscreenElement === player;
     fullscreen.setAttribute("aria-label", isFullscreen ? "Закрыть полноэкранный режим" : "Открыть видео на весь экран");
-    fullscreenIcon.textContent = isFullscreen ? "↙" : "⛶";
+    fullscreenIcon.classList.toggle("video-icon-fullscreen", !isFullscreen);
+    fullscreenIcon.classList.toggle("video-icon-compress", isFullscreen);
   };
 
   const setProgress = () => {

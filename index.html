@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&amp;family=Onest:wght@400;450;500;550;600;650&amp;display=swap" rel="stylesheet" />
     <link rel="icon" href="./assets/byte-logo-white.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./style.css?v=byte-live-site-2" />
+    <link rel="stylesheet" href="./style.css?v=byte-live-site-3" />
   </head>
   <body>
     <main>
@@ -73,15 +73,15 @@
                 data-video
               ></video>
               <button class="video-toggle" type="button" aria-label="Воспроизвести видео" data-video-toggle>
-                <span aria-hidden="true">▶</span>
+                <span class="video-icon video-icon-play" aria-hidden="true"></span>
               </button>
               <div class="video-controls" aria-label="Управление видео">
                 <input class="video-progress" type="range" min="0" max="100" value="0" step="0.1" aria-label="Прогресс видео" data-video-progress />
                 <button class="video-control-button" type="button" aria-label="Выключить звук" data-video-mute>
-                  <span aria-hidden="true">🔊</span>
+                  <span class="video-icon video-icon-sound" aria-hidden="true"></span>
                 </button>
                 <button class="video-control-button" type="button" aria-label="Открыть видео на весь экран" data-video-fullscreen>
-                  <span aria-hidden="true">⛶</span>
+                  <span class="video-icon video-icon-fullscreen" aria-hidden="true"></span>
                 </button>
               </div>
             </div>
@@ -266,7 +266,7 @@
         </div>
       </section>
     </main>
-    <script src="./site.js?v=byte-live-site-2" defer></script>
-    <script type="module" src="./script.js?v=byte-live-site-2"></script>
+    <script src="./site.js?v=byte-live-site-3" defer></script>
+    <script type="module" src="./script.js?v=byte-live-site-3"></script>
   </body>
 </html>
