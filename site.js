@@ -159,8 +159,8 @@ document.querySelector("[data-contact-form]")?.addEventListener("submit", (event
   if (!form.reportValidity()) return;
 
   button.classList.add("is-sent");
-  button.querySelector("span:first-child").textContent = "Заявка подготовлена";
-  status.textContent = "Форма работает как заглушка. Отправка в Telegram будет подключена после настройки бота.";
+  button.querySelector("span:first-child").textContent = "Напишите в Telegram";
+  status.textContent = "Чтобы мы точно получили задачу, отправьте сообщение напрямую в Telegram.";
 });
 
 document.querySelectorAll("[data-comparison]").forEach((comparison) => {
