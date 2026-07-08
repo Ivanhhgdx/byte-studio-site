@@ -70,6 +70,10 @@ let pointerDeltaY = 0;
 let lastPointerX = 0;
 let lastPointerY = 0;
 let lastPointerTime = 0;
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartedInHero = false;
+let touchGestureAxis = null;
 let currentShapeIndex = 0;
 let previousShapeIndex = -1;
 let morphProgress = 1;
@@ -1126,14 +1130,55 @@ function updateTouchFromEvent(event) {
   updatePointerPosition(touch.clientX, touch.clientY, 1.35);
 }
 
+function isTouchInsideHeroStage(touch) {
+  if (!heroStage || !touch) return false;
+
+  const rect = heroStage.getBoundingClientRect();
+  return (
+    touch.clientX >= rect.left &&
+    touch.clientX <= rect.right &&
+    touch.clientY >= rect.top &&
+    touch.clientY <= rect.bottom
+  );
+}
+
 function startTouchInteraction(event) {
+  const touch = event.touches[0] ?? event.changedTouches[0];
+
+  touchStartX = touch?.clientX ?? 0;
+  touchStartY = touch?.clientY ?? 0;
+  touchStartedInHero = isTouchInsideHeroStage(touch);
+  touchGestureAxis = null;
   lastPointerTime = 0;
+  updateTouchFromEvent(event);
+}
+
+function lockHorizontalHeroTouch(event) {
+  const touch = event.touches[0] ?? event.changedTouches[0];
+
+  if (touchStartedInHero && touch) {
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    if (!touchGestureAxis && (absX > 8 || absY > 8)) {
+      touchGestureAxis = absX > absY * 1.15 ? "x" : "y";
+    }
+
+    if (touchGestureAxis === "x" && event.cancelable) {
+      event.preventDefault();
+    }
+  }
+
   updateTouchFromEvent(event);
 }
 
 function deactivatePointer(resetMotion = false) {
   pointerInside = false;
   lastPointerTime = 0;
+  touchStartedInHero = false;
+  touchGestureAxis = null;
 
   if (!resetMotion) return;
 
@@ -1530,7 +1575,7 @@ window.addEventListener("scroll", updateHeroProgress, { passive: true });
 window.addEventListener("pointermove", updatePointerFromEvent, { passive: true });
 window.addEventListener("pointerup", releaseTouchPointer, { passive: true });
 window.addEventListener("touchstart", startTouchInteraction, { passive: true });
-window.addEventListener("touchmove", updateTouchFromEvent, { passive: true });
+window.addEventListener("touchmove", lockHorizontalHeroTouch, { passive: false });
 window.addEventListener("touchend", releaseTouchPointer, { passive: true });
 window.addEventListener("touchcancel", releaseTouchPointer, { passive: true });
 window.addEventListener("pointerleave", () => deactivatePointer(true));

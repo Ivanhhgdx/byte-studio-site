@@ -75,7 +75,15 @@
               <button class="video-toggle" type="button" aria-label="Воспроизвести видео" data-video-toggle>
                 <span aria-hidden="true">▶</span>
               </button>
-              <input class="video-progress" type="range" min="0" max="100" value="0" step="0.1" aria-label="Прогресс видео" data-video-progress />
+              <div class="video-controls" aria-label="Управление видео">
+                <input class="video-progress" type="range" min="0" max="100" value="0" step="0.1" aria-label="Прогресс видео" data-video-progress />
+                <button class="video-control-button" type="button" aria-label="Выключить звук" data-video-mute>
+                  <span aria-hidden="true">🔊</span>
+                </button>
+                <button class="video-control-button" type="button" aria-label="Открыть видео на весь экран" data-video-fullscreen>
+                  <span aria-hidden="true">⛶</span>
+                </button>
+              </div>
             </div>
             <figcaption>
               <span>Демонстрация системы Byte</span>

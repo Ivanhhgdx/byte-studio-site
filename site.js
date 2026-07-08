@@ -57,15 +57,35 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
   const video = player.querySelector("[data-video]");
   const toggle = player.querySelector("[data-video-toggle]");
   const progress = player.querySelector("[data-video-progress]");
+  const mute = player.querySelector("[data-video-mute]");
+  const fullscreen = player.querySelector("[data-video-fullscreen]");
 
   if (!video || !toggle || !progress) return;
 
   const toggleIcon = toggle.querySelector("span");
+  const muteIcon = mute?.querySelector("span");
+  const fullscreenIcon = fullscreen?.querySelector("span");
 
   const setButtonState = () => {
     const isPlaying = !video.paused && !video.ended;
     toggle.setAttribute("aria-label", isPlaying ? "Поставить видео на паузу" : "Воспроизвести видео");
     toggleIcon.textContent = isPlaying ? "Ⅱ" : "▶";
+  };
+
+  const setMuteState = () => {
+    if (!mute || !muteIcon) return;
+
+    const isMuted = video.muted || video.volume === 0;
+    mute.setAttribute("aria-label", isMuted ? "Включить звук" : "Выключить звук");
+    muteIcon.textContent = isMuted ? "🔇" : "🔊";
+  };
+
+  const setFullscreenState = () => {
+    if (!fullscreen || !fullscreenIcon) return;
+
+    const isFullscreen = document.fullscreenElement === player || document.webkitFullscreenElement === player;
+    fullscreen.setAttribute("aria-label", isFullscreen ? "Закрыть полноэкранный режим" : "Открыть видео на весь экран");
+    fullscreenIcon.textContent = isFullscreen ? "↙" : "⛶";
   };
 
   const setProgress = () => {
@@ -83,13 +103,39 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
     }
   };
 
+  const toggleMute = () => {
+    video.muted = !video.muted;
+    setMuteState();
+  };
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      document.exitFullscreen?.();
+      document.webkitExitFullscreen?.();
+      return;
+    }
+
+    if (player.requestFullscreen) {
+      player.requestFullscreen();
+    } else if (player.webkitRequestFullscreen) {
+      player.webkitRequestFullscreen();
+    } else if (video.webkitEnterFullscreen) {
+      video.webkitEnterFullscreen();
+    }
+  };
+
   toggle.addEventListener("click", togglePlayback);
   video.addEventListener("click", togglePlayback);
+  mute?.addEventListener("click", toggleMute);
+  fullscreen?.addEventListener("click", toggleFullscreen);
   video.addEventListener("play", setButtonState);
   video.addEventListener("pause", setButtonState);
   video.addEventListener("ended", setButtonState);
+  video.addEventListener("volumechange", setMuteState);
   video.addEventListener("timeupdate", setProgress);
   video.addEventListener("loadedmetadata", setProgress);
+  document.addEventListener("fullscreenchange", setFullscreenState);
+  document.addEventListener("webkitfullscreenchange", setFullscreenState);
 
   progress.addEventListener("input", () => {
     if (!video.duration) return;
@@ -98,6 +144,8 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
   });
 
   setButtonState();
+  setMuteState();
+  setFullscreenState();
   setProgress();
 });
 
