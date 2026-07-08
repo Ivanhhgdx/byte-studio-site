@@ -63,14 +63,20 @@
             </div>
           </div>
           <figure class="system-video-frame" data-reveal>
-            <video
-              class="system-video"
-              src="./assets/video/byte-system-demo.mp4"
-              poster="./assets/video/byte-system-demo-poster.jpg"
-              controls
-              playsinline
-              preload="metadata"
-            ></video>
+            <div class="system-video-player" data-video-player>
+              <video
+                class="system-video"
+                src="./assets/video/byte-system-demo.mp4"
+                poster="./assets/video/byte-system-demo-poster.jpg"
+                playsinline
+                preload="metadata"
+                data-video
+              ></video>
+              <button class="video-toggle" type="button" aria-label="Воспроизвести видео" data-video-toggle>
+                <span aria-hidden="true">▶</span>
+              </button>
+              <input class="video-progress" type="range" min="0" max="100" value="0" step="0.1" aria-label="Прогресс видео" data-video-progress />
+            </div>
             <figcaption>
               <span>Демонстрация системы Byte</span>
               <span>47 секунд</span>

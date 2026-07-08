@@ -1500,14 +1500,98 @@ a {
   border-top: 1px solid var(--line-light);
 }
 
+.system-video-player {
+  position: relative;
+  margin-top: 1.25rem;
+  background: #111114;
+}
+
 .system-video {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
-  margin-top: 1.25rem;
   border: 0;
-  background: #111114;
+  background: transparent;
   object-fit: cover;
+}
+
+.video-toggle {
+  position: absolute;
+  right: clamp(0.75rem, 2vw, 1.25rem);
+  bottom: clamp(0.85rem, 2vw, 1.35rem);
+  display: grid;
+  place-items: center;
+  width: clamp(2.75rem, 5vw, 3.4rem);
+  height: clamp(2.75rem, 5vw, 3.4rem);
+  border: 1px solid rgba(246, 245, 240, 0.42);
+  border-radius: 50%;
+  background: rgba(8, 10, 13, 0.34);
+  color: var(--white);
+  font-size: 0.9rem;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+.video-toggle:hover,
+.video-toggle:focus-visible {
+  transform: scale(1.04);
+  border-color: rgba(246, 245, 240, 0.68);
+  background: rgba(8, 10, 13, 0.48);
+}
+
+.video-progress {
+  position: absolute;
+  left: clamp(0.75rem, 2vw, 1.25rem);
+  right: clamp(4.4rem, 7vw, 5.4rem);
+  bottom: clamp(1.85rem, 3.2vw, 2.4rem);
+  width: auto;
+  height: 0.25rem;
+  accent-color: var(--white);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+.video-progress::-webkit-slider-runnable-track {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--white) var(--video-progress, 0%), rgba(246, 245, 240, 0.28) 0);
+}
+
+.video-progress::-webkit-slider-thumb {
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-top: -0.35rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--white);
+  -webkit-appearance: none;
+}
+
+.video-progress::-moz-range-track {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: rgba(246, 245, 240, 0.28);
+}
+
+.video-progress::-moz-range-progress {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--white);
+}
+
+.video-progress::-moz-range-thumb {
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--white);
 }
 
 .system-video-frame figcaption {

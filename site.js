@@ -53,6 +53,54 @@ if (reducedMotion) {
   });
 }
 
+document.querySelectorAll("[data-video-player]").forEach((player) => {
+  const video = player.querySelector("[data-video]");
+  const toggle = player.querySelector("[data-video-toggle]");
+  const progress = player.querySelector("[data-video-progress]");
+
+  if (!video || !toggle || !progress) return;
+
+  const toggleIcon = toggle.querySelector("span");
+
+  const setButtonState = () => {
+    const isPlaying = !video.paused && !video.ended;
+    toggle.setAttribute("aria-label", isPlaying ? "Поставить видео на паузу" : "Воспроизвести видео");
+    toggleIcon.textContent = isPlaying ? "Ⅱ" : "▶";
+  };
+
+  const setProgress = () => {
+    const ratio = video.duration ? (video.currentTime / video.duration) * 100 : 0;
+    const value = Math.min(Math.max(ratio, 0), 100);
+    progress.value = value;
+    progress.style.setProperty("--video-progress", `${value}%`);
+  };
+
+  const togglePlayback = () => {
+    if (video.paused || video.ended) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  };
+
+  toggle.addEventListener("click", togglePlayback);
+  video.addEventListener("click", togglePlayback);
+  video.addEventListener("play", setButtonState);
+  video.addEventListener("pause", setButtonState);
+  video.addEventListener("ended", setButtonState);
+  video.addEventListener("timeupdate", setProgress);
+  video.addEventListener("loadedmetadata", setProgress);
+
+  progress.addEventListener("input", () => {
+    if (!video.duration) return;
+    video.currentTime = (Number(progress.value) / 100) * video.duration;
+    setProgress();
+  });
+
+  setButtonState();
+  setProgress();
+});
+
 document.querySelector("[data-contact-form]")?.addEventListener("submit", (event) => {
   event.preventDefault();
 
