@@ -2,6 +2,30 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 
 document.documentElement.classList.add("motion-ready");
 
+const pageProgress = document.createElement("div");
+pageProgress.className = "page-progress";
+pageProgress.setAttribute("aria-hidden", "true");
+document.body.prepend(pageProgress);
+
+let pageProgressFrame = 0;
+
+const updatePageProgress = () => {
+  const scrollRange = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+  const progress = Math.min(Math.max(window.scrollY / scrollRange, 0), 1);
+  pageProgress.style.setProperty("--page-progress", progress.toFixed(4));
+  pageProgressFrame = 0;
+};
+
+const requestPageProgressUpdate = () => {
+  if (pageProgressFrame) return;
+  pageProgressFrame = window.requestAnimationFrame(updatePageProgress);
+};
+
+window.addEventListener("scroll", requestPageProgressUpdate, { passive: true });
+window.addEventListener("resize", requestPageProgressUpdate);
+window.addEventListener("load", requestPageProgressUpdate, { once: true });
+updatePageProgress();
+
 const innerRevealSelectors = [
   ".inner-page .page-hero .section-shell > *",
   ".inner-page .service-catalog .section-shell > .section-index",
@@ -65,12 +89,42 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
   const toggleIcon = toggle.querySelector("span");
   const muteIcon = mute?.querySelector("span");
   const fullscreenIcon = fullscreen?.querySelector("span");
+  const canAutoHideControls = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  let controlsTimer = 0;
+  let controlsHaveKeyboardFocus = false;
+
+  const clearControlsTimer = () => {
+    if (!controlsTimer) return;
+    window.clearTimeout(controlsTimer);
+    controlsTimer = 0;
+  };
+
+  const hideControls = () => {
+    controlsTimer = 0;
+    if (!canAutoHideControls || video.paused || video.ended || controlsHaveKeyboardFocus) return;
+    player.classList.add("is-controls-hidden");
+  };
+
+  const showControls = ({ scheduleHide = true } = {}) => {
+    clearControlsTimer();
+    player.classList.remove("is-controls-hidden");
+
+    if (canAutoHideControls && scheduleHide && !video.paused && !video.ended) {
+      controlsTimer = window.setTimeout(hideControls, 1800);
+    }
+  };
 
   const setButtonState = () => {
     const isPlaying = !video.paused && !video.ended;
     toggle.setAttribute("aria-label", isPlaying ? "Поставить видео на паузу" : "Воспроизвести видео");
     toggleIcon.classList.toggle("video-icon-play", !isPlaying);
     toggleIcon.classList.toggle("video-icon-pause", isPlaying);
+
+    if (isPlaying) {
+      showControls();
+    } else {
+      showControls({ scheduleHide: false });
+    }
   };
 
   const setMuteState = () => {
@@ -129,6 +183,24 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
 
   toggle.addEventListener("click", togglePlayback);
   video.addEventListener("click", togglePlayback);
+  player.addEventListener("pointerdown", () => {
+    controlsHaveKeyboardFocus = false;
+  });
+  player.addEventListener("keydown", () => {
+    controlsHaveKeyboardFocus = true;
+  });
+  player.addEventListener("pointermove", () => showControls());
+  player.addEventListener("pointerleave", () => {
+    if (!video.paused && !video.ended) {
+      clearControlsTimer();
+      controlsTimer = window.setTimeout(hideControls, 300);
+    }
+  });
+  player.addEventListener("focusin", () => showControls({ scheduleHide: false }));
+  player.addEventListener("focusout", () => {
+    controlsHaveKeyboardFocus = false;
+    showControls();
+  });
   mute?.addEventListener("click", toggleMute);
   fullscreen?.addEventListener("click", toggleFullscreen);
   video.addEventListener("play", setButtonState);
