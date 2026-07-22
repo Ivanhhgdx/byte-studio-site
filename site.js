@@ -263,18 +263,47 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
   setProgress();
 });
 
-document.querySelector("[data-contact-form]")?.addEventListener("submit", (event) => {
+const contactEndpoint = "https://bite-studio-leads.fyyyyybebl2.workers.dev";
+
+document.querySelector("[data-contact-form]")?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const form = event.currentTarget;
   const status = form.querySelector("[data-form-status]");
   const button = form.querySelector("button[type='submit']");
+  const buttonLabel = button.querySelector("span:first-child");
 
   if (!form.reportValidity()) return;
 
-  button.classList.add("is-sent");
-  button.querySelector("span:first-child").textContent = "Напишите в Telegram";
-  status.textContent = "Чтобы мы точно получили задачу, отправьте сообщение напрямую в Telegram.";
+  const data = new FormData(form);
+  button.disabled = true;
+  buttonLabel.textContent = "Отправляем…";
+  status.textContent = "";
+
+  try {
+    const response = await fetch(contactEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: data.get("name"),
+        contact: data.get("contact"),
+        message: data.get("message"),
+        website: data.get("website"),
+        source: window.location.href,
+      }),
+    });
+
+    if (!response.ok) throw new Error("Request failed");
+
+    form.reset();
+    button.classList.add("is-sent");
+    buttonLabel.textContent = "Заявка отправлена";
+    status.textContent = "Спасибо! Мы получили вашу заявку и свяжемся с вами.";
+  } catch {
+    button.disabled = false;
+    buttonLabel.textContent = "Повторить отправку";
+    status.textContent = "Не удалось отправить заявку. Пожалуйста, попробуйте ещё раз или напишите нам в Telegram.";
+  }
 });
 
 document.querySelectorAll("[data-comparison]").forEach((comparison) => {
