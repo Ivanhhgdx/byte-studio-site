@@ -95,6 +95,7 @@ if (reducedMotion) {
 
 document.querySelectorAll("[data-video-player]").forEach((player) => {
   const video = player.querySelector("[data-video]");
+  const surface = player.querySelector("[data-video-surface]");
   const toggle = player.querySelector("[data-video-toggle]");
   const progress = player.querySelector("[data-video-progress]");
   const mute = player.querySelector("[data-video-mute]");
@@ -102,13 +103,14 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
 
   if (!video || !toggle || !progress) return;
 
-  const toggleIcon = toggle.querySelector("span");
+  const toggleIcon = toggle.querySelector(".video-icon");
   const muteIcon = mute?.querySelector("span");
   const fullscreenIcon = fullscreen?.querySelector("span");
   const canAutoHideControls = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
   let controlsTimer = 0;
   let controlsHaveKeyboardFocus = false;
   let lastInteractionWasPointer = false;
+  let controlsWereHiddenOnPointerDown = false;
 
   const clearControlsTimer = () => {
     if (!controlsTimer) return;
@@ -116,9 +118,9 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
     controlsTimer = 0;
   };
 
-  const hideControls = () => {
+  const hideControls = ({ force = false } = {}) => {
     controlsTimer = 0;
-    if (!canAutoHideControls || video.paused || video.ended || controlsHaveKeyboardFocus) return;
+    if ((!canAutoHideControls && !force) || (!force && (video.paused || video.ended || controlsHaveKeyboardFocus))) return;
     player.classList.add("is-controls-hidden");
   };
 
@@ -140,6 +142,7 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
     if (isPlaying) {
       showControls();
     } else {
+      setLoadingState(false);
       showControls({ scheduleHide: false });
     }
   };
@@ -169,9 +172,24 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
     progress.style.setProperty("--video-progress", `${value}%`);
   };
 
+  const setLoadingState = (isLoading) => {
+    player.classList.toggle("is-loading", isLoading);
+    toggle.toggleAttribute("aria-busy", isLoading);
+  };
+
+  const toggleControls = () => {
+    if (controlsWereHiddenOnPointerDown) {
+      showControls({ scheduleHide: false });
+    } else {
+      clearControlsTimer();
+      hideControls({ force: true });
+    }
+  };
+
   const togglePlayback = () => {
     if (video.paused || video.ended) {
-      video.play().catch(() => {});
+      setLoadingState(true);
+      video.play().catch(() => setLoadingState(false));
     } else {
       video.pause();
     }
@@ -199,7 +217,10 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
   };
 
   toggle.addEventListener("click", togglePlayback);
-  video.addEventListener("click", togglePlayback);
+  surface?.addEventListener("pointerdown", () => {
+    controlsWereHiddenOnPointerDown = player.classList.contains("is-controls-hidden");
+  });
+  surface?.addEventListener("click", toggleControls);
   player.addEventListener("pointerdown", () => {
     lastInteractionWasPointer = true;
     controlsHaveKeyboardFocus = false;
@@ -208,10 +229,10 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
     lastInteractionWasPointer = false;
     controlsHaveKeyboardFocus = true;
   });
-  player.addEventListener("pointermove", () => {
+  player.addEventListener("pointermove", (event) => {
     lastInteractionWasPointer = true;
     controlsHaveKeyboardFocus = false;
-    showControls();
+    if (canAutoHideControls && event.pointerType === "mouse") showControls();
   });
   player.addEventListener("pointerleave", () => {
     if (!video.paused && !video.ended) {
@@ -233,6 +254,16 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
   video.addEventListener("play", setButtonState);
   video.addEventListener("pause", setButtonState);
   video.addEventListener("ended", setButtonState);
+  video.addEventListener("loadstart", () => {
+    if (!video.paused) setLoadingState(true);
+  });
+  video.addEventListener("waiting", () => setLoadingState(true));
+  video.addEventListener("stalled", () => {
+    if (!video.paused) setLoadingState(true);
+  });
+  video.addEventListener("playing", () => setLoadingState(false));
+  video.addEventListener("canplay", () => setLoadingState(false));
+  video.addEventListener("error", () => setLoadingState(false));
   video.addEventListener("volumechange", setMuteState);
   video.addEventListener("timeupdate", setProgress);
   video.addEventListener("loadedmetadata", setProgress);
