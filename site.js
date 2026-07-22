@@ -92,6 +92,7 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
   const canAutoHideControls = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
   let controlsTimer = 0;
   let controlsHaveKeyboardFocus = false;
+  let lastInteractionWasPointer = false;
 
   const clearControlsTimer = () => {
     if (!controlsTimer) return;
@@ -184,20 +185,30 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
   toggle.addEventListener("click", togglePlayback);
   video.addEventListener("click", togglePlayback);
   player.addEventListener("pointerdown", () => {
+    lastInteractionWasPointer = true;
     controlsHaveKeyboardFocus = false;
   });
   player.addEventListener("keydown", () => {
+    lastInteractionWasPointer = false;
     controlsHaveKeyboardFocus = true;
   });
-  player.addEventListener("pointermove", () => showControls());
+  player.addEventListener("pointermove", () => {
+    lastInteractionWasPointer = true;
+    controlsHaveKeyboardFocus = false;
+    showControls();
+  });
   player.addEventListener("pointerleave", () => {
     if (!video.paused && !video.ended) {
       clearControlsTimer();
       controlsTimer = window.setTimeout(hideControls, 300);
     }
   });
-  player.addEventListener("focusin", () => showControls({ scheduleHide: false }));
+  player.addEventListener("focusin", () => {
+    controlsHaveKeyboardFocus = !lastInteractionWasPointer;
+    showControls({ scheduleHide: !controlsHaveKeyboardFocus });
+  });
   player.addEventListener("focusout", () => {
+    lastInteractionWasPointer = false;
     controlsHaveKeyboardFocus = false;
     showControls();
   });

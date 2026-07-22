@@ -1806,6 +1806,25 @@ a {
   background: #111114;
 }
 
+.system-video-player:fullscreen,
+.system-video-player:-webkit-full-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  background: #000;
+}
+
+.system-video-player:fullscreen .system-video,
+.system-video-player:-webkit-full-screen .system-video {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: contain;
+}
+
 .system-video {
   display: block;
   width: 100%;
