@@ -1718,6 +1718,83 @@ a {
   background: #080a0d;
 }
 
+.pricing-section {
+  padding: clamp(7rem, 13vw, 12rem) 0;
+  border-top: 1px solid var(--line-dark);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: clamp(4rem, 8vw, 7rem);
+  border-top: 1px solid var(--line-dark);
+  border-left: 1px solid var(--line-dark);
+}
+
+.pricing-grid article {
+  display: flex;
+  min-height: 18rem;
+  flex-direction: column;
+  padding: clamp(1.4rem, 2.6vw, 2.25rem);
+  border-right: 1px solid var(--line-dark);
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.pricing-grid p,
+.pricing-grid strong,
+.pricing-grid span,
+.pricing-more p {
+  margin: 0;
+}
+
+.pricing-grid p {
+  max-width: 14rem;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.pricing-grid strong {
+  margin-top: auto;
+  font-size: clamp(1.65rem, 3vw, 2.55rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+}
+
+.pricing-grid span {
+  max-width: 21rem;
+  margin-top: 1rem;
+  color: var(--muted-dark);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.pricing-more {
+  margin: clamp(2.5rem, 5vw, 4.5rem) 0 2.5rem;
+  border-top: 1px solid var(--line-dark);
+}
+
+.pricing-more p {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.15rem 0;
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.pricing-more span {
+  font-size: 0.82rem;
+}
+
+.pricing-more strong {
+  font-size: clamp(1rem, 1.8vw, 1.35rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  text-align: right;
+}
+
 .system-video-frame {
   margin: clamp(4rem, 8vw, 7rem) 0 0;
   border-top: 1px solid var(--line-light);
@@ -2806,6 +2883,10 @@ a {
     grid-template-columns: 1fr;
   }
 
+  .pricing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .capability-grid article {
     min-height: 23rem;
   }
@@ -2837,6 +2918,24 @@ a {
 
   .home-service-list p {
     display: none;
+  }
+
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pricing-grid article {
+    min-height: 15rem;
+  }
+
+  .pricing-more p {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .pricing-more strong {
+    text-align: left;
   }
 
   .home-service-list h3 {
