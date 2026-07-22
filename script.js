@@ -10,6 +10,7 @@ const heroStage = document.querySelector(".hero-stage");
 const sceneWrap = document.querySelector(".scene-wrap");
 const darkSection = document.querySelector(".dark-section");
 const modeButtons = document.querySelectorAll("[data-scene-mode]");
+const pageVideos = document.querySelectorAll("[data-video]");
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
@@ -1621,6 +1622,10 @@ updateHeroProgress();
 const heroVisibilityObserver = new IntersectionObserver(
   ([entry]) => {
     heroInView = entry.isIntersecting;
+    if (heroInView && videoIsPlaying) {
+      pageVideos.forEach((video) => video.pause());
+      videoIsPlaying = false;
+    }
     syncSceneAnimation();
   },
   { rootMargin: "120px 0px" }
@@ -1628,7 +1633,7 @@ const heroVisibilityObserver = new IntersectionObserver(
 
 heroVisibilityObserver.observe(hero);
 
-document.querySelectorAll("[data-video]").forEach((video) => {
+pageVideos.forEach((video) => {
   video.addEventListener("play", () => {
     videoIsPlaying = true;
     syncSceneAnimation();

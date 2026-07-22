@@ -239,6 +239,18 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
   document.addEventListener("fullscreenchange", setFullscreenState);
   document.addEventListener("webkitfullscreenchange", setFullscreenState);
 
+  const videoVisibilityObserver = new IntersectionObserver(
+    ([entry]) => {
+      const isFullscreen = document.fullscreenElement === player || document.webkitFullscreenElement === player;
+      if (!isFullscreen && entry.intersectionRatio < 0.2 && !video.paused && !video.ended) {
+        video.pause();
+      }
+    },
+    { threshold: [0, 0.2, 0.5] }
+  );
+
+  videoVisibilityObserver.observe(player);
+
   progress.addEventListener("input", () => {
     if (!video.duration) return;
     video.currentTime = (Number(progress.value) / 100) * video.duration;
