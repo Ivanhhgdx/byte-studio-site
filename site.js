@@ -46,11 +46,32 @@ document.querySelectorAll(innerRevealSelectors.join(",")).forEach((element) => {
 
 document.querySelectorAll("[data-stagger]").forEach((group) => {
   group.querySelectorAll(":scope > [data-reveal]").forEach((element, index) => {
-    element.style.setProperty("--reveal-delay", `${index * 80}ms`);
+    element.style.setProperty("--reveal-delay", `${Math.min(index, 5) * 95}ms`);
   });
 });
 
 const revealElements = document.querySelectorAll("[data-reveal]");
+
+const getRevealStyle = (element) => {
+  if (element.matches(".section-heading, .contact-heading, .about-copy, .page-hero .section-shell > *")) return "heading";
+  if (element.matches("figure, .comparison-card, .project-visual, .case-row")) return "media";
+  if (element.matches("article, li, .home-service-list a, .pricing-more, form")) return "card";
+  return "soft";
+};
+
+revealElements.forEach((element, index) => {
+  const siblings = Array.from(element.parentElement?.children || []).filter((item) => item.hasAttribute("data-reveal"));
+  const siblingIndex = Math.max(siblings.indexOf(element), 0);
+  const direction = siblingIndex % 2 === 0 ? -1 : 1;
+
+  element.dataset.revealStyle = getRevealStyle(element);
+  element.style.setProperty("--reveal-x", `${direction * Math.min(12 + siblingIndex * 3, 24)}px`);
+  element.style.setProperty("--reveal-rotate", `${direction * 0.45}deg`);
+
+  if (!element.style.getPropertyValue("--reveal-delay")) {
+    element.style.setProperty("--reveal-delay", `${Math.min(index % 4, 3) * 70}ms`);
+  }
+});
 
 if (reducedMotion) {
   revealElements.forEach((element) => element.classList.add("is-visible"));
@@ -64,17 +85,12 @@ if (reducedMotion) {
       });
     },
     {
-      threshold: 0.12,
-      rootMargin: "0px 0px -6% 0px",
+      threshold: 0.14,
+      rootMargin: "0px 0px -4% 0px",
     }
   );
 
-  revealElements.forEach((element, index) => {
-    if (!element.style.getPropertyValue("--reveal-delay")) {
-      element.style.setProperty("--reveal-delay", `${Math.min(index % 3, 2) * 60}ms`);
-    }
-    revealObserver.observe(element);
-  });
+  revealElements.forEach((element) => revealObserver.observe(element));
 }
 
 document.querySelectorAll("[data-video-player]").forEach((player) => {

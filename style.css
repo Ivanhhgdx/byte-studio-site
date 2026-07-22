@@ -1409,17 +1409,51 @@ a {
 
 [data-reveal] {
   opacity: 0;
-  transform: translate3d(0, 28px, 0);
+  filter: blur(8px);
+  transform: translate3d(0, 42px, 0) scale(0.985);
   transition:
-    opacity 780ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 780ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 720ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 980ms cubic-bezier(0.16, 1, 0.3, 1),
+    clip-path 1100ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: var(--reveal-delay, 0ms);
-  will-change: transform, opacity;
+  will-change: transform, opacity, filter, clip-path;
 }
 
 [data-reveal].is-visible {
   opacity: 1;
+  filter: blur(0);
   transform: translate3d(0, 0, 0);
+}
+
+[data-reveal][data-reveal-style="heading"] {
+  clip-path: inset(0 0 42% 0);
+  transform: translate3d(0, 72px, 0) scale(0.97);
+  transform-origin: 50% 100%;
+}
+
+[data-reveal][data-reveal-style="heading"].is-visible {
+  clip-path: inset(-8% -4% -8% -4%);
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+[data-reveal][data-reveal-style="card"] {
+  transform: translate3d(var(--reveal-x, 0), 58px, 0) scale(0.955) rotate(var(--reveal-rotate, 0deg));
+  transform-origin: 50% 100%;
+}
+
+[data-reveal][data-reveal-style="card"].is-visible {
+  transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+}
+
+[data-reveal][data-reveal-style="media"] {
+  clip-path: inset(9% 0 11% 0 round 2px);
+  transform: translate3d(0, 48px, 0) scale(1.045);
+}
+
+[data-reveal][data-reveal-style="media"].is-visible {
+  clip-path: inset(0 0 0 0 round 0);
+  transform: translate3d(0, 0, 0) scale(1);
 }
 
 @keyframes orbitFloat {
@@ -1471,10 +1505,12 @@ a {
     animation-iteration-count: 1 !important;
   }
 
-  [data-reveal] {
+  [data-reveal],
+  [data-reveal][data-reveal-style] {
     opacity: 1;
     transform: none;
     filter: none;
+    clip-path: none;
   }
 
   .process-line li,
@@ -2279,11 +2315,11 @@ a {
 }
 
 .capability-grid article[data-reveal] {
-  transform: translate3d(0, 28px, 0);
+  transform: translate3d(var(--reveal-x, 0), 58px, 0) scale(0.955) rotate(var(--reveal-rotate, 0deg));
 }
 
 .capability-grid article[data-reveal].is-visible {
-  transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
 }
 
 .capability-grid article::after {

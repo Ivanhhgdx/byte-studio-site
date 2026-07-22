@@ -93,6 +93,9 @@ let introActive = true;
 let compactLayout = false;
 let darkMode = false;
 let themeBlendTarget = 0;
+let heroInView = true;
+let videoIsPlaying = false;
+let sceneDestroyed = false;
 
 const morphFromPositions = new Float32Array(PARTICLE_COUNT * 3);
 const morphToPositions = new Float32Array(PARTICLE_COUNT * 3);
@@ -1519,7 +1522,10 @@ function setSceneMode(mode, initialize = false) {
 }
 
 function animate() {
-  const delta = clock.getDelta();
+  animationFrame = 0;
+  if (sceneDestroyed || document.hidden || !heroInView || videoIsPlaying) return;
+
+  const delta = Math.min(clock.getDelta(), 1 / 30);
   const elapsed = clock.elapsedTime;
 
   applyMouseImpulse();
@@ -1543,8 +1549,23 @@ function animate() {
   animationFrame = requestAnimationFrame(animate);
 }
 
+function syncSceneAnimation() {
+  const shouldAnimate = !sceneDestroyed && !document.hidden && heroInView && !videoIsPlaying;
+  document.documentElement.dataset.sceneAnimation = shouldAnimate ? "running" : "paused";
+
+  if (shouldAnimate && !animationFrame) {
+    clock.getDelta();
+    animationFrame = requestAnimationFrame(animate);
+  } else if (!shouldAnimate && animationFrame) {
+    cancelAnimationFrame(animationFrame);
+    animationFrame = 0;
+  }
+}
+
 function destroy() {
+  sceneDestroyed = true;
   cancelAnimationFrame(animationFrame);
+  animationFrame = 0;
   geometry.dispose();
   material.dispose();
   renderer.dispose();
@@ -1580,6 +1601,7 @@ window.addEventListener("touchend", releaseTouchPointer, { passive: true });
 window.addEventListener("touchcancel", releaseTouchPointer, { passive: true });
 window.addEventListener("pointerleave", () => deactivatePointer(true));
 window.addEventListener("blur", () => deactivatePointer(true));
+document.addEventListener("visibilitychange", syncSceneAnimation);
 window.addEventListener("pagehide", destroy, { once: true });
 window.addEventListener("pageshow", resetInitialScroll, { once: true });
 
@@ -1595,4 +1617,30 @@ resize();
 setSceneMode("dark", true);
 initializeScreenScatter();
 updateHeroProgress();
-animate();
+
+const heroVisibilityObserver = new IntersectionObserver(
+  ([entry]) => {
+    heroInView = entry.isIntersecting;
+    syncSceneAnimation();
+  },
+  { rootMargin: "120px 0px" }
+);
+
+heroVisibilityObserver.observe(hero);
+
+document.querySelectorAll("[data-video]").forEach((video) => {
+  video.addEventListener("play", () => {
+    videoIsPlaying = true;
+    syncSceneAnimation();
+  });
+  video.addEventListener("pause", () => {
+    videoIsPlaying = false;
+    syncSceneAnimation();
+  });
+  video.addEventListener("ended", () => {
+    videoIsPlaying = false;
+    syncSceneAnimation();
+  });
+});
+
+syncSceneAnimation();
