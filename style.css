@@ -1793,33 +1793,73 @@ a {
 
 .pricing-grid strong {
   margin-top: auto;
-  font-size: clamp(1.65rem, 3vw, 2.55rem);
-  font-weight: 500;
-  letter-spacing: -0.05em;
 }
 
 .price-pair {
   display: grid;
-  gap: 0.38rem;
+  width: 100%;
+  gap: 0.7rem;
   align-content: start;
 }
 
+.pricing-grid .price-pair > span {
+  max-width: none;
+  margin-top: 0;
+}
+
+.pricing-grid .price-pair > .price-was {
+  color: #55595d;
+}
+
+.pricing-grid .price-pair > .price-now {
+  color: var(--ink);
+}
+
 .price-was {
-  color: var(--muted-dark);
-  font-size: 0.34em;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: #55595d;
+  font-weight: 500;
 }
 
 .price-was s {
+  font-size: 0.86rem;
+  letter-spacing: -0.02em;
+  text-decoration-color: #777b7f;
   text-decoration-thickness: 1px;
 }
 
 .price-now {
-  color: #0579bd;
-  font-size: 0.9em;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem 1rem 0.95rem;
+  border-left: 3px solid var(--ink);
+  background: rgba(8, 10, 13, 0.045);
+  color: var(--ink);
+}
+
+.price-pair small {
+  font-size: 0.58rem;
   font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.price-was small {
+  color: #55595d;
+}
+
+.price-now small {
+  color: #464a4e;
+}
+
+.price-now b {
+  font-size: clamp(1.65rem, 3vw, 2.55rem);
+  font-weight: 600;
+  line-height: 1;
   letter-spacing: -0.055em;
 }
 
@@ -1850,15 +1890,31 @@ a {
 }
 
 .pricing-more strong {
+  width: min(100%, 27rem);
   font-size: clamp(1rem, 1.8vw, 1.35rem);
   font-weight: 500;
   letter-spacing: -0.03em;
   text-align: right;
 }
 
-.urgent-order {
+.pricing-more .price-pair {
+  gap: 0.5rem;
+}
+
+.pricing-more .price-now {
+  padding: 0.65rem 0.8rem 0.72rem;
+}
+
+.pricing-more .price-now b {
+  font-size: clamp(1.1rem, 1.8vw, 1.35rem);
+}
+
+.pricing-more .urgent-order {
   gap: 1.5rem;
-  background: rgba(132, 213, 255, 0.1);
+  padding-right: 1rem;
+  padding-left: calc(1rem - 3px);
+  border-left: 3px solid var(--ink);
+  background: rgba(8, 10, 13, 0.045);
 }
 
 .urgent-order span {
