@@ -1,9 +1,5 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js";
 
-if ("scrollRestoration" in history) {
-  history.scrollRestoration = "manual";
-}
-
 const canvas = document.querySelector("#cube-canvas");
 const hero = document.querySelector(".hero");
 const heroStage = document.querySelector(".hero-stage");
@@ -1572,26 +1568,6 @@ function destroy() {
   renderer.dispose();
 }
 
-function resetInitialScroll() {
-  if (window.location.hash) {
-    requestAnimationFrame(() => {
-      document.querySelector(window.location.hash)?.scrollIntoView();
-      updateHeroProgress();
-    });
-    return;
-  }
-
-  const previousScrollBehavior = document.documentElement.style.scrollBehavior;
-  document.documentElement.style.scrollBehavior = "auto";
-  window.scrollTo(0, 0);
-
-  requestAnimationFrame(() => {
-    window.scrollTo(0, 0);
-    updateHeroProgress();
-    document.documentElement.style.scrollBehavior = previousScrollBehavior;
-  });
-}
-
 window.addEventListener("resize", resize);
 window.addEventListener("scroll", updateHeroProgress, { passive: true });
 window.addEventListener("pointermove", updatePointerFromEvent, { passive: true });
@@ -1604,10 +1580,6 @@ window.addEventListener("pointerleave", () => deactivatePointer(true));
 window.addEventListener("blur", () => deactivatePointer(true));
 document.addEventListener("visibilitychange", syncSceneAnimation);
 window.addEventListener("pagehide", destroy, { once: true });
-window.addEventListener("pageshow", resetInitialScroll, { once: true });
-
-resetInitialScroll();
-
 modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
     setSceneMode(button.dataset.sceneMode);
