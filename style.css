@@ -1798,6 +1798,22 @@ a {
   letter-spacing: -0.05em;
 }
 
+.pricing-grid strong s,
+.pricing-more strong s {
+  display: block;
+  color: var(--muted-dark);
+  font-size: 0.42em;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-decoration-thickness: 1px;
+}
+
+.pricing-grid strong em,
+.pricing-more strong em {
+  display: block;
+  font-style: normal;
+}
+
 .pricing-grid span {
   max-width: 21rem;
   margin-top: 1rem;
@@ -1829,6 +1845,32 @@ a {
   font-weight: 500;
   letter-spacing: -0.03em;
   text-align: right;
+}
+
+.urgent-order {
+  gap: 1.5rem;
+  background: rgba(132, 213, 255, 0.1);
+}
+
+.urgent-order span {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.urgent-order b {
+  font-weight: 600;
+}
+
+.urgent-order small {
+  max-width: 36rem;
+  color: var(--muted-dark);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.urgent-order strong {
+  color: var(--ink);
+  white-space: nowrap;
 }
 
 .system-video-frame {
