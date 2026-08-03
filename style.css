@@ -1835,8 +1835,9 @@ a {
   display: grid;
   gap: 0.35rem;
   padding: 0.85rem 1rem 0.95rem;
-  border-left: 3px solid var(--ink);
-  background: rgba(8, 10, 13, 0.045);
+  border-left: 3px solid #45b9ed;
+  background: linear-gradient(110deg, rgba(132, 213, 255, 0.22), rgba(132, 213, 255, 0.075));
+  box-shadow: inset 0 0 0 1px rgba(69, 185, 237, 0.1);
   color: var(--ink);
 }
 
@@ -1853,7 +1854,11 @@ a {
 }
 
 .price-now small {
-  color: #464a4e;
+  width: max-content;
+  padding: 0.25rem 0.48rem;
+  border-radius: 999px;
+  background: rgba(132, 213, 255, 0.42);
+  color: #145b78;
 }
 
 .price-now b {
@@ -1913,8 +1918,9 @@ a {
   gap: 1.5rem;
   padding-right: 1rem;
   padding-left: calc(1rem - 3px);
-  border-left: 3px solid var(--ink);
-  background: rgba(8, 10, 13, 0.045);
+  border-left: 3px solid #45b9ed;
+  background: linear-gradient(110deg, rgba(132, 213, 255, 0.2), rgba(132, 213, 255, 0.065));
+  box-shadow: inset 0 0 0 1px rgba(69, 185, 237, 0.09);
 }
 
 .urgent-order span {
