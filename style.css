@@ -439,16 +439,18 @@ a {
 .hero-text {
   max-width: 43rem;
   margin: 0.45rem 0 0;
-  color: rgba(246, 245, 240, 0.46);
-  font-size: clamp(0.94rem, 1.08vw, 1.04rem);
+  color: rgba(246, 245, 240, 0.82);
+  font-size: clamp(1.05rem, 1.35vw, 1.25rem);
+  font-weight: 550;
   line-height: 1.48;
 }
 
 .hero-offer {
   max-width: 52rem;
   margin: 0.9rem 0 0;
-  color: rgba(246, 245, 240, 0.62);
-  font-size: clamp(0.74rem, 0.86vw, 0.84rem);
+  color: rgba(246, 245, 240, 0.76);
+  font-size: clamp(0.9rem, 1.05vw, 1rem);
+  font-weight: 500;
   line-height: 1.5;
 }
 
@@ -3218,7 +3220,7 @@ a {
 
   .hero-offer {
     max-width: 22rem;
-    font-size: 0.62rem;
+    font-size: 0.9rem;
   }
 
   .comparison-card {
