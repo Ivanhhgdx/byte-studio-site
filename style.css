@@ -1752,7 +1752,7 @@ a {
 .system-video-section {
   position: relative;
   z-index: 3;
-  padding: clamp(7rem, 13vw, 12rem) 0;
+  padding: clamp(2rem, 4vw, 4rem) 0;
   background: #080a0d;
 }
 
@@ -1974,7 +1974,7 @@ a {
 }
 
 .system-video-frame {
-  margin: clamp(4rem, 8vw, 7rem) 0 0;
+  margin: 1.25rem 0 0;
   border-top: 1px solid var(--line-light);
 }
 
@@ -3529,3 +3529,6 @@ a {
   .contact-form label { grid-template-columns: 1fr; gap: .4rem; }
   .inner-footer .section-shell { flex-wrap: wrap; gap: 1rem; }
 }
+
+.system-video-section .section-heading { align-items: center; }
+.system-video-section .section-heading h2 { margin: 0; font-size: clamp(1.8rem, 3.2vw, 3rem); line-height: 1.1; }
