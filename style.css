@@ -3483,3 +3483,49 @@ a {
 @media (max-width: 380px) {
   .header-phone { font-size: 0.7rem; }
 }
+
+/* Clear offers, people and purchase conditions */
+.site-header { grid-template-columns: auto 1fr auto; gap: 1.5rem; }
+.site-nav { justify-content: center; }
+.concept-section, .purchase-questions { padding: clamp(3rem, 6vw, 6rem) 0; }
+.concept-section { color: var(--white); background: #0b0e12; }
+.concept-layout { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 5vw, 5rem); align-items: start; }
+.concept-section h2, .purchase-questions h2 { font-size: clamp(2.2rem, 4.5vw, 4.5rem); line-height: 1.08; letter-spacing: -0.045em; margin: 1rem 0 2rem; }
+.concept-layout p { line-height: 1.65; }
+.concept-layout .concept-terms { color: rgba(246,245,240,.7); font-size: .9rem; }
+.concept-section .primary-button { margin-top: 1rem; }
+.purchase-questions { background: #f0efe9; color: #171a1c; }
+.purchase-questions .faq-list { max-width: 58rem; }
+.pricing-note { max-width: 58rem; margin: 1.5rem 0; color: #5c6062; font-size: .9rem; line-height: 1.65; }
+.pricing-section .text-link { margin-right: 2rem; margin-top: 1rem; }
+.founders-section, .starter-section { padding: 0 0 clamp(4rem, 8vw, 8rem); }
+.founders-grid, .starter-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; }
+.founders-grid article, .starter-card { min-width: 0; border-top: 1px solid var(--line-light); padding: 2rem 0; }
+.founders-grid h2, .starter-card h2 { font-size: clamp(1.65rem, 3vw, 2.8rem); line-height: 1.15; margin: 0 0 1rem; }
+.founders-grid p, .starter-card p, .starter-card li { color: rgba(246,245,240,.76); line-height: 1.65; }
+.starter-card .starter-price { color: var(--white); font-size: 1.5rem; margin: 0 0 1rem; }
+.starter-card ul { padding-left: 1.2rem; }
+.starter-card .starter-extra { font-size: .88rem; }
+.starter-card .text-link { margin-top: .75rem; }
+.contact-section { padding-top: clamp(2.5rem, 5vw, 5rem); scroll-margin-top: 1rem; }
+.contact-heading h2 { font-size: clamp(2.1rem, 4vw, 4rem); line-height: 1.08; }
+.contact-intro { max-width: 55rem; margin-top: 1rem; color: rgba(246,245,240,.76); }
+.contact-grid { margin-top: 2rem; gap: clamp(2rem, 5vw, 5rem); }
+.contact-form label > span, .deadline-field legend, .deadline-field p { color: rgba(246,245,240,.72); }
+.contact-form input::placeholder, .contact-form textarea::placeholder { color: rgba(246,245,240,.58); }
+.contact-form select { width: 100%; min-width: 0; padding: .7rem; background: #15191d; border: 1px solid var(--line-light); border-radius: .5rem; color: var(--white); font: inherit; }
+.contact-form input[type=date] { color-scheme: dark; font-size: 1rem; min-height: 2.5rem; }
+.contact-form label small { display: block; font-size: .7rem; margin-top: .25rem; }
+.form-explanation { color: rgba(246,245,240,.7); font-size: .8rem; line-height: 1.6; }
+.direct-contact a { font-size: clamp(1.1rem, 1.7vw, 1.6rem); white-space: nowrap; }
+.inner-footer a { color: rgba(246,245,240,.85); text-decoration: none; }
+@media (min-width:901px) and (max-width:1150px) { .site-nav { gap: 1rem; } }
+@media (max-width:900px) {
+  .site-header { grid-template-columns: auto 1fr auto; gap: .8rem; }
+  .concept-layout { grid-template-columns: 1fr; }
+}
+@media (max-width:620px) {
+  .founders-grid, .starter-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .contact-form label { grid-template-columns: 1fr; gap: .4rem; }
+  .inner-footer .section-shell { flex-wrap: wrap; gap: 1rem; }
+}

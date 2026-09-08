@@ -296,6 +296,51 @@ document.querySelectorAll("[data-video-player]").forEach((player) => {
 
 const contactEndpoint = "https://bite-studio-leads.fyyyyybebl2.workers.dev";
 
+const leadRequestLabels = {
+  project: "Оценка проекта",
+  concept: "Бесплатный первый экран",
+  support: "Доработка или поддержка",
+  partner: "Партнёрство",
+};
+
+const buildLeadMessage = (data, locationHref) => {
+  const date = String(data.get("launch_date") || "");
+  const dateLabel = /^\d{4}-\d{2}-\d{2}$/.test(date) ? date.split("-").reverse().join(".") : "Не указана";
+  const url = new URL(locationHref);
+  const referral = String(url.searchParams.get("ref") || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
+  return [
+    `Тема: ${leadRequestLabels[data.get("request_type")] || leadRequestLabels.project}`,
+    `Срок запуска: ${data.get("urgency") === "urgent" ? "Срочный запуск" : "Стандартный срок"}`,
+    `Желаемая дата: ${dateLabel}`,
+    ...(referral ? [`Код партнёра: ${referral}`] : []),
+    "",
+    String(data.get("message") || "").slice(0, 2400),
+  ].join("\n");
+};
+
+document.querySelectorAll("[data-request-type]").forEach((link) => {
+  link.addEventListener("click", () => {
+    const kind = link.dataset.requestType;
+    if (!leadRequestLabels[kind]) return;
+    const select = document.querySelector("select[name=request_type]");
+    if (select) select.value = kind;
+    else {
+      const target = new URL(link.href);
+      target.searchParams.set("request", kind);
+      link.href = target.href;
+    }
+  });
+});
+
+const requestSelect = document.querySelector("select[name=request_type]");
+const requestedType = new URL(window.location.href).searchParams.get("request");
+if (requestSelect && leadRequestLabels[requestedType]) requestSelect.value = requestedType;
+const launchDateInput = document.querySelector("input[name=launch_date]");
+if (launchDateInput) {
+  const today = new Date();
+  launchDateInput.min = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+}
+
 document.querySelector("[data-contact-form]")?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -318,9 +363,9 @@ document.querySelector("[data-contact-form]")?.addEventListener("submit", async 
       body: JSON.stringify({
         name: data.get("name"),
         contact: data.get("contact"),
-        message: `Срок запуска: ${data.get("urgency") === "urgent" ? "Срочный запуск" : "Стандартный срок"}\n\n${data.get("message")}`,
+        message: buildLeadMessage(data, window.location.href),
         website: data.get("website"),
-        source: window.location.href,
+        source: window.location.origin + window.location.pathname,
       }),
     });
 
@@ -329,11 +374,11 @@ document.querySelector("[data-contact-form]")?.addEventListener("submit", async 
     form.reset();
     button.classList.add("is-sent");
     buttonLabel.textContent = "Заявка отправлена";
-    status.textContent = "Спасибо! Мы получили вашу заявку и свяжемся с вами.";
+    status.textContent = "Спасибо! Заявка получена. Отвечаем с 10:00 до 22:00 МСК в течение 30 минут, вне этого времени — в течение 24 часов.";
   } catch {
     button.disabled = false;
     buttonLabel.textContent = "Повторить отправку";
-    status.textContent = "Не удалось отправить заявку. Пожалуйста, попробуйте ещё раз или напишите нам в Telegram.";
+    status.textContent = "Не удалось отправить заявку. Попробуйте ещё раз или позвоните: +7 (950) 989-64-67.";
   }
 });
 
