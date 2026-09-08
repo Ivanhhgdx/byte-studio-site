@@ -1,4 +1,5 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js";
+import { createRenderSizeSync, createSceneRuntime } from "./scene-runtime.mjs?v=20260908-1";
 
 const canvas = document.querySelector("#cube-canvas");
 const hero = document.querySelector(".hero");
@@ -17,7 +18,6 @@ const renderer = new THREE.WebGLRenderer({
   powerPreference: "high-performance",
 });
 
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setClearColor(0xffffff, 0);
 
 const cubeGroup = new THREE.Group();
@@ -26,7 +26,6 @@ scene.add(cubeGroup);
 
 const pointer = new THREE.Vector2(0, 0);
 const raycaster = new THREE.Raycaster();
-const clock = new THREE.Clock();
 const inverseCubeMatrix = new THREE.Matrix4();
 const localRay = new THREE.Ray();
 const cameraRight = new THREE.Vector3();
@@ -80,7 +79,6 @@ let surfaceFlowEpoch = 0;
 let morphArmed = true;
 let morphQueued = false;
 let freshInteraction = false;
-let animationFrame = 0;
 let revealProgress = 0;
 let revealTarget = 0;
 let scrollScatterProgress = 0;
@@ -92,7 +90,6 @@ let darkMode = false;
 let themeBlendTarget = 0;
 let heroInView = true;
 let videoIsPlaying = false;
-let sceneDestroyed = false;
 
 const morphFromPositions = new Float32Array(PARTICLE_COUNT * 3);
 const morphToPositions = new Float32Array(PARTICLE_COUNT * 3);
@@ -1038,20 +1035,15 @@ function renderLiquidGlass() {
   }
 }
 
-function resize() {
-  const { width, height } = canvas.getBoundingClientRect();
+const resize = createRenderSizeSync(renderer, canvas, (width, height, pixelRatio) => {
   const compact = width < 720;
   compactLayout = compact;
-
-  renderer.setSize(width, height, false);
   camera.position.set(0, 0, compact ? 9.55 : 8.6);
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  cubeGroup.position.y = compact ? 0.16 : 0.3;
-  cubeGroup.scale.setScalar(compact ? 0.86 : 1.02);
-  material.uniforms.uPixelRatio.value = renderer.getPixelRatio();
+  material.uniforms.uPixelRatio.value = pixelRatio;
   updateHeroProgress();
-}
+}, () => window.devicePixelRatio);
 
 function initializeScreenScatter() {
   const viewHalfHeight =
@@ -1070,7 +1062,7 @@ function initializeScreenScatter() {
     setPoint(scrollScatterPositions, i, scrollX, scrollY, scrollZ);
   }
 
-  introStartTime = clock.elapsedTime;
+  introStartTime = sceneRuntime.elapsed;
   introActive = true;
   positions.set(introPositions);
   geometry.attributes.position.needsUpdate = true;
@@ -1332,8 +1324,10 @@ function updateParticles(delta, elapsed) {
   heroStage.style.setProperty("--copy-y", `${copyY}px`);
   heroStage.style.setProperty("--copy-scale", copyScale.toFixed(3));
   heroStage.style.setProperty("--copy-events", copyOpacity > 0.92 ? "auto" : "none");
-  sceneWrap.style.setProperty("--particle-blur", `${particleBlur.toFixed(2)}px`);
-  sceneWrap.style.setProperty("--particle-scale", particleScale.toFixed(4));
+  const blur = particleBlur.toFixed(2);
+  const scale = particleScale.toFixed(4);
+  sceneWrap.style.setProperty("--particle-filter", Number(blur) ? `blur(${blur}px)` : "none");
+  sceneWrap.style.setProperty("--particle-transform", Number(scale) !== 1 ? `scale(${scale})` : "none");
 
   const wasMorphing = morphProgress < 1;
   updateShapeMorph(delta);
@@ -1508,22 +1502,17 @@ function setSceneMode(mode, initialize = false) {
   morphProgress = 1;
   morphCooldown = 0.8;
   surfaceFlowBlend = 1;
-  surfaceFlowEpoch = clock.elapsedTime;
+  surfaceFlowEpoch = sceneRuntime.elapsed;
   morphArmed = true;
   morphQueued = false;
   freshInteraction = false;
-  updateOrganicSurface(clock.elapsedTime);
+  updateOrganicSurface(sceneRuntime.elapsed);
 
   positions.set(basePositions);
   geometry.attributes.position.needsUpdate = true;
 }
 
-function animate() {
-  animationFrame = 0;
-  if (sceneDestroyed || document.hidden || !heroInView || videoIsPlaying) return;
-
-  const delta = Math.min(clock.getDelta(), 1 / 30);
-  const elapsed = clock.elapsedTime;
+function animate(delta, elapsed) {
 
   applyMouseImpulse();
   updateParticles(delta, elapsed);
@@ -1543,32 +1532,27 @@ function animate() {
   cubeGroup.scale.setScalar(nextScale);
 
   renderer.render(scene, camera);
-  animationFrame = requestAnimationFrame(animate);
 }
+
+const sceneRuntime = createSceneRuntime({
+  window, document, canvas,
+  canAnimate: () => heroInView && !videoIsPlaying,
+  resize,
+  render: animate,
+  suspend: () => deactivatePointer(true),
+  dispose: () => {
+    heroVisibilityObserver.disconnect();
+    geometry.dispose();
+    material.dispose();
+    renderer.dispose();
+  },
+});
 
 function syncSceneAnimation() {
-  const shouldAnimate = !sceneDestroyed && !document.hidden && heroInView && !videoIsPlaying;
-  document.documentElement.dataset.sceneAnimation = shouldAnimate ? "running" : "paused";
-
-  if (shouldAnimate && !animationFrame) {
-    clock.getDelta();
-    animationFrame = requestAnimationFrame(animate);
-  } else if (!shouldAnimate && animationFrame) {
-    cancelAnimationFrame(animationFrame);
-    animationFrame = 0;
-  }
+  sceneRuntime.sync();
 }
 
-function destroy() {
-  sceneDestroyed = true;
-  cancelAnimationFrame(animationFrame);
-  animationFrame = 0;
-  geometry.dispose();
-  material.dispose();
-  renderer.dispose();
-}
-
-window.addEventListener("resize", resize);
+window.addEventListener("resize", () => resize());
 window.addEventListener("scroll", updateHeroProgress, { passive: true });
 window.addEventListener("pointermove", updatePointerFromEvent, { passive: true });
 window.addEventListener("pointerup", releaseTouchPointer, { passive: true });
@@ -1578,8 +1562,6 @@ window.addEventListener("touchend", releaseTouchPointer, { passive: true });
 window.addEventListener("touchcancel", releaseTouchPointer, { passive: true });
 window.addEventListener("pointerleave", () => deactivatePointer(true));
 window.addEventListener("blur", () => deactivatePointer(true));
-document.addEventListener("visibilitychange", syncSceneAnimation);
-window.addEventListener("pagehide", destroy, { once: true });
 modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
     setSceneMode(button.dataset.sceneMode);
@@ -1587,6 +1569,8 @@ modeButtons.forEach((button) => {
 });
 
 resize();
+cubeGroup.position.y = compactLayout ? 0.16 : 0.3;
+cubeGroup.scale.setScalar(compactLayout ? 0.86 : 1.02);
 setSceneMode("dark", true);
 initializeScreenScatter();
 updateHeroProgress();
