@@ -318,7 +318,7 @@ document.querySelector("[data-contact-form]")?.addEventListener("submit", async 
       body: JSON.stringify({
         name: data.get("name"),
         contact: data.get("contact"),
-        message: data.get("message"),
+        message: `Срок запуска: ${data.get("urgency") === "urgent" ? "Срочный запуск" : "Стандартный срок"}\n\n${data.get("message")}`,
         website: data.get("website"),
         source: window.location.href,
       }),

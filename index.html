@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&amp;family=Onest:wght@400;450;500;550;600;650&amp;display=swap" rel="stylesheet" />
     <link rel="icon" href="./assets/byte-logo-white.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./style.css?v=byte-hero-20260908" />
+    <link rel="stylesheet" href="./style.css?v=byte-deadline-20260908" />
   </head>
   <body>
     <main>
@@ -27,7 +27,7 @@
               <a href="./process.html">Как работаем</a>
               <a href="./about.html">О студии</a>
             </nav>
-            <a class="header-action" href="#contact">Рассказать о проекте</a>
+            <div class="header-contacts"><a class="header-phone" href="tel:+79509896467">+7 (950) 989-64-67</a><a class="header-action" href="#contact">Рассказать о проекте</a></div>
             <details class="mobile-menu">
               <summary>Меню</summary>
               <nav aria-label="Мобильная навигация">
@@ -279,6 +279,14 @@
               <label><span>Как вас зовут</span><input type="text" name="name" autocomplete="name" placeholder="Имя" required /></label>
               <label><span>Как связаться</span><input type="text" name="contact" autocomplete="email" placeholder="Telegram или email" required /></label>
               <label><span>Что хотите сделать</span><textarea name="message" rows="3" placeholder="Например: нужен сайт для компании" required></textarea></label>
+              <fieldset class="deadline-field" aria-describedby="deadline-note">
+                <legend>Срок запуска</legend>
+                <div class="deadline-options">
+                  <label><input type="radio" name="urgency" value="standard" checked /><span>Стандартный срок</span></label>
+                  <label><input type="radio" name="urgency" value="urgent" /><span>Срочный запуск</span></label>
+                </div>
+                <p id="deadline-note">Стандартный — согласуем удобный график. Срочный — проверим возможность приоритетного запуска; стоимость выше обычной. Срок и цену подтвердим до старта.</p>
+              </fieldset>
               <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" hidden />
               <button class="submit-button" type="submit"><span>Отправить заявку</span><span aria-hidden="true">↗</span></button>
               <p class="form-status" data-form-status aria-live="polite"></p>
@@ -296,7 +304,7 @@
         </div>
       </section>
     </main>
-    <script src="./site.js?v=byte-live-site-9" defer></script>
+    <script src="./site.js?v=byte-deadline-20260908" defer></script>
     <script type="module" src="./script.js?v=byte-live-site-6"></script>
   </body>
 </html>
