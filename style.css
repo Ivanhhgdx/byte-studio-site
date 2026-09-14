@@ -3564,3 +3564,166 @@ a {
     transition: none;
   }
 }
+
+/* Service cards: a quiet invitation, opening into a single immersive sheet. */
+.capability-grid article:has(.capability-open) {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 1.4rem;
+  isolation: isolate;
+  border-top: 0;
+}
+.capability-open {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  margin-top: auto;
+  padding: 2.5rem 0 0;
+  border: 0;
+  background: transparent;
+  color: rgba(246, 245, 240, .55);
+  text-align: left;
+  font-size: .75rem;
+  cursor: pointer;
+  transition: color 300ms ease;
+}
+.capability-open::before {
+  position: absolute;
+  inset: -1px -1rem;
+  z-index: 1;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  content: '';
+  transition: background 400ms ease, border-color 400ms ease;
+}
+.capability-open-icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid rgba(246, 245, 240, .2);
+  border-radius: 50%;
+  color: var(--white);
+  font-size: 1.25rem;
+  transition: transform 600ms cubic-bezier(.16, 1, .3, 1), background 400ms ease, color 400ms ease;
+}
+.capability-open:focus-visible { outline: none; }
+.capability-open:focus-visible::before {
+  border-color: var(--blue);
+  outline: 2px solid var(--blue);
+  outline-offset: 4px;
+}
+@media (hover: hover) {
+  .capability-grid article:has(.capability-open):hover { border-color: var(--blue); }
+  .capability-grid article:hover .capability-open { color: var(--white); }
+  .capability-open:hover::before { background: rgba(132, 213, 255, .035); }
+  .capability-grid article:hover .capability-open-icon {
+    transform: rotate(45deg);
+    background: var(--white);
+    color: var(--black);
+  }
+}
+.capability-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: clamp(.6rem, 2vw, 2rem);
+  border: 0;
+  background: transparent;
+  color: var(--white);
+  overflow: hidden;
+}
+.capability-dialog[open] { display: grid; place-items: center; }
+.capability-dialog::backdrop {
+  background: rgba(2, 5, 8, 0);
+  backdrop-filter: blur(0);
+  transition: background 520ms ease, backdrop-filter 650ms ease;
+}
+.capability-dialog.is-open::backdrop {
+  background: rgba(2, 5, 8, .78);
+  backdrop-filter: blur(14px);
+}
+.capability-sheet {
+  position: relative;
+  width: min(100%, 960px);
+  max-height: 100%;
+  min-height: 0;
+  padding: clamp(1.5rem, 4.5vw, 4.2rem);
+  border: 0;
+  border-radius: 30px;
+  background: #08090a;
+  box-shadow: none;
+  transform-origin: top left;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #45545e transparent;
+}
+.capability-close {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 0 -44px auto;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #08090a;
+  color: var(--white);
+  cursor: pointer;
+  font-size: 1.8rem;
+  transition: transform 450ms cubic-bezier(.16, 1, .3, 1), background 250ms ease;
+}
+.capability-close:hover { transform: rotate(90deg); background: #161719; }
+.capability-dialog h2 {
+  margin: 0;
+  padding-right: 2.5rem;
+  font-size: clamp(1.9rem, 4.3vw, 3.8rem);
+  font-weight: 450;
+  line-height: 1.06;
+  letter-spacing: -.055em;
+}
+.capability-intro {
+  max-width: 42rem;
+  margin: 1.6rem 0 2.5rem;
+  color: #b9b9b9;
+  font-size: clamp(.95rem, 1.5vw, 1.1rem);
+  line-height: 1.65;
+}
+.capability-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+.capability-detail-grid > div { padding-top: .5rem; }
+.capability-detail-grid h3 { margin: 0 0 1rem; font-size: .8rem; font-weight: 500; color: #a5a5a5; }
+.capability-detail-grid p, .capability-detail-grid ul {
+  margin: 0;
+  font-size: .95rem;
+  line-height: 1.65;
+  color: #dddddd;
+}
+.capability-detail-grid ul { list-style: none; padding: 0; }
+.capability-detail-grid li { position: relative; padding-left: 1.15rem; margin-bottom: .65rem; }
+.capability-detail-grid li::before { content: ''; position: absolute; left: 0; top: .7em; width: 4px; height: 4px; border-radius: 50%; background: var(--blue); }
+.capability-example { padding: 0; margin: 2rem 0; color: #a4a6a8; font-size: .85rem; line-height: 1.7; }
+.capability-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1.5rem; }
+.capability-detail-link { font-size: .8rem; text-underline-offset: .35em; }
+.capability-footnote { margin: 1.4rem 0 0; color: #888888; font-size: .7rem; line-height: 1.5; }
+@media (max-width: 640px) {
+  .capability-dialog { padding: .6rem; }
+  .capability-sheet { padding: 1.5rem; }
+  .capability-detail-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .capability-intro { margin-bottom: 1.7rem; }
+  .capability-actions { align-items: stretch; flex-direction: column; gap: 1.2rem; }
+  .capability-actions .primary-button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .capability-open, .capability-open::before, .capability-open-icon,
+  .capability-close, .capability-dialog::backdrop { transition: none; }
+}

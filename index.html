@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&amp;family=Onest:wght@400;450;500;550;600;650&amp;display=swap" rel="stylesheet" />
     <link rel="icon" href="./assets/byte-logo-white.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./style.css?v=byte-motion-20260914" />
+    <link rel="stylesheet" href="./style.css?v=byte-cards-vortex-20260914-2" />
   </head>
   <body>
     <main>
@@ -141,9 +141,9 @@
             </div>
           </div>
           <div class="capability-grid" data-stagger>
-            <article data-reveal><p>Сайты для бизнеса</p><ul><li>Рассказать об услуге</li><li>Показать товары и цены</li><li>Получать заявки и звонки</li><li>Обновить существующий сайт</li></ul></article>
-            <article data-reveal><p>Telegram-боты</p><ul><li>Принимать обращения</li><li>Отвечать на частые вопросы</li><li>Отправлять уведомления</li><li>Упростить запись и заказы</li></ul></article>
-            <article data-reveal><p>Сервисы и автоматизация</p><ul><li>Личные кабинеты</li><li>Заявки и задачи команды</li><li>Связь рабочих сервисов</li><li>ИИ для конкретного сценария</li></ul></article>
+            <article data-reveal><p>Сайты для бизнеса</p><ul><li>Рассказать об услуге</li><li>Показать товары и цены</li><li>Получать заявки и звонки</li><li>Обновить существующий сайт</li></ul><button class="capability-open" type="button" data-capability="0" aria-haspopup="dialog" aria-controls="capability-dialog" aria-label="Подробнее: Сайты для бизнеса"><span>Подробнее о направлении</span><span class="capability-open-icon" aria-hidden="true">↗</span></button></article>
+            <article data-reveal><p>Telegram-боты</p><ul><li>Принимать обращения</li><li>Отвечать на частые вопросы</li><li>Отправлять уведомления</li><li>Упростить запись и заказы</li></ul><button class="capability-open" type="button" data-capability="1" aria-haspopup="dialog" aria-controls="capability-dialog" aria-label="Подробнее: Telegram-боты"><span>Подробнее о направлении</span><span class="capability-open-icon" aria-hidden="true">↗</span></button></article>
+            <article data-reveal><p>Сервисы и автоматизация</p><ul><li>Личные кабинеты</li><li>Заявки и задачи команды</li><li>Связь рабочих сервисов</li><li>ИИ для конкретного сценария</li></ul><button class="capability-open" type="button" data-capability="2" aria-haspopup="dialog" aria-controls="capability-dialog" aria-label="Подробнее: Сервисы и автоматизация"><span>Подробнее о направлении</span><span class="capability-open-icon" aria-hidden="true">↗</span></button></article>
           </div>
           <div class="home-service-list" data-stagger>
             <a href="./services.html#websites" data-reveal><span>01</span><h3>Сайты для компаний</h3><p>Помогаем быстро понять, чем вы полезны, почему вам стоит доверять и как связаться.</p><i>↗</i></a>
@@ -291,7 +291,13 @@
         </div>
       </section>
     </main>
-    <script src="./site.js?v=byte-motion-20260914" defer></script>
-    <script type="module" src="./script.js?v=byte-motion-20260914"></script>
+    <dialog class="capability-dialog" id="capability-dialog" aria-labelledby="capability-dialog-title">
+      <div class="capability-sheet">
+        <button class="capability-close" type="button" aria-label="Закрыть подробности" autofocus><span aria-hidden="true">×</span></button>
+        <div class="capability-dialog-content"></div>
+      </div>
+    </dialog>
+    <script src="./site.js?v=byte-cards-vortex-20260914-2" defer></script>
+    <script type="module" src="./script.js?v=byte-cards-vortex-20260914-2"></script>
   </body>
 </html>

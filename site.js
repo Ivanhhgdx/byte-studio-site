@@ -1,5 +1,120 @@
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// A service card expands into a focused detail sheet and returns to its source.
+const capabilityDialog = document.querySelector('#capability-dialog');
+if (capabilityDialog) {
+  const offerings = [
+    {
+      title: 'Ваше предложение.<br>Понятно с первого экрана.',
+      intro: 'Собираем путь от первого знакомства до обращения: что вы предлагаете, кому это подходит и почему стоит выбрать вас.',
+      tasks: ['Запустить сайт новой компании или услуги', 'Показать товары, цены и ответы на вопросы', 'Обновить сайт, которым неудобно пользоваться'],
+      result: 'Структура, тексты на основе ваших материалов, дизайн и страницы для телефона и компьютера. Формы и интеграции включаем в согласованный объём.',
+      example: 'Например, сайт услуги: предложение → преимущества → примеры → ответы на вопросы → заявка.',
+      link: './services.html#websites',
+    },
+    {
+      title: 'Меньше переписки.<br>Больше понятных действий.',
+      intro: 'Помогаем клиенту получить ответ, оставить заявку или оформить запрос в привычном мессенджере. Начинаем с одного полезного сценария.',
+      tasks: ['Собрать обращение и передать его команде', 'Показать услуги и ответы на частые вопросы', 'Организовать запрос на запись или уведомления'],
+      result: 'Понятное меню, согласованная логика диалога и передача данных ответственному. Оплату, CRM и дополнительные сценарии обсуждаем отдельно.',
+      example: 'Например, бот для записи: выбор услуги → контакт → пожелание по времени → уведомление администратору.',
+      link: './services.html#telegram',
+    },
+    {
+      title: 'Рутина — системе.<br>Внимание — вашему делу.',
+      intro: 'Собираем рабочие инструменты вокруг конкретного процесса: чтобы заявки, статусы и нужные данные были под рукой.',
+      tasks: ['Дать клиентам доступ к заявкам и статусам', 'Собрать задачи команды в одном месте', 'Связать сервисы или добавить ИИ в отдельный этап'],
+      result: 'Первая рабочая версия для выбранного процесса, согласованные роли и доступы. Возможность интеграций проверяем до старта; сложные решения остаются под контролем человека.',
+      example: 'Например, обработка заявки: форма → список обращений → ответственный → статус → уведомление.',
+      link: './services.html#systems',
+    },
+  ];
+  const sheet = capabilityDialog.querySelector('.capability-sheet');
+  const content = capabilityDialog.querySelector('.capability-dialog-content');
+  const closeButton = capabilityDialog.querySelector('.capability-close');
+  let source = null;
+  let closing = false;
+  let animations = [];
+  let savedOverflow = '';
+  const easing = 'cubic-bezier(0.16, 1, 0.3, 1)';
+  const cancelAnimations = () => {
+    animations.forEach((animation) => animation.cancel());
+    animations = [];
+  };
+  const sourceTransform = () => {
+    const from = source.closest('article').getBoundingClientRect();
+    const to = sheet.getBoundingClientRect();
+    return `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width}, ${from.height / to.height})`;
+  };
+  const finishClose = () => {
+    cancelAnimations();
+    capabilityDialog.classList.remove('is-open');
+    capabilityDialog.close();
+    document.body.style.overflow = savedOverflow;
+    source?.focus({ preventScroll: true });
+    closing = false;
+  };
+  const close = async () => {
+    if (!capabilityDialog.open || closing) return;
+    closing = true;
+    const currentTransform = getComputedStyle(sheet).transform;
+    const currentOpacity = getComputedStyle(sheet).opacity;
+    cancelAnimations();
+    capabilityDialog.classList.remove('is-open');
+    if (reducedMotion) return finishClose();
+    const transform = sourceTransform();
+    animations.push(content.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(12px)' }], { duration: 160, fill: 'forwards' }));
+    const collapse = sheet.animate([
+      { transform: currentTransform, opacity: currentOpacity, borderRadius: '30px' },
+      { transform, opacity: 0, borderRadius: '8px' },
+    ], { duration: 520, easing: 'cubic-bezier(0.76, 0, 0.24, 1)', fill: 'forwards' });
+    animations.push(collapse);
+    await collapse.finished.catch(() => {});
+    finishClose();
+  };
+  document.querySelectorAll('[data-capability]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (capabilityDialog.open) return;
+      const offering = offerings[Number(button.dataset.capability)];
+      source = button;
+      content.innerHTML = `
+        <h2 id="capability-dialog-title">${offering.title}</h2>
+        <p class="capability-intro">${offering.intro}</p>
+        <div class="capability-detail-grid">
+          <div><h3>Когда это полезно</h3><ul>${offering.tasks.map((task) => `<li>${task}</li>`).join('')}</ul></div>
+          <div><h3>Что получаете</h3><p>${offering.result}</p></div>
+        </div>
+        <p class="capability-example">${offering.example}</p>
+        <div class="capability-actions"><a class="primary-button" href="#contact" data-capability-contact><span>Обсудить задачу</span><span aria-hidden="true">↗</span></a><a class="capability-detail-link" href="${offering.link}">Подробнее об услуге ↗</a></div>
+        <p class="capability-footnote">Состав работ, стоимость и срок фиксируем до договора.</p>`;
+      savedOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      capabilityDialog.showModal();
+      sheet.scrollTop = 0;
+      const transform = sourceTransform();
+      capabilityDialog.classList.add('is-open');
+      if (!reducedMotion) {
+        animations.push(sheet.animate([
+          { transform, opacity: 0.35, borderRadius: '8px' },
+          { transform: 'none', opacity: 1, borderRadius: '30px' },
+        ], { duration: 850, easing }));
+        content.querySelectorAll(':scope > *').forEach((element, index) => {
+          animations.push(element.animate([
+            { opacity: 0, transform: 'translateY(24px)' },
+            { opacity: 1, transform: 'none' },
+          ], { duration: 650, delay: 140 + index * 45, easing, fill: 'backwards' }));
+        });
+      }
+    });
+  });
+  closeButton.addEventListener('click', close);
+  capabilityDialog.addEventListener('cancel', (event) => { event.preventDefault(); close(); });
+  capabilityDialog.addEventListener('click', (event) => {
+    if (event.target === capabilityDialog) close();
+    if (event.target.closest('[data-capability-contact]')) finishClose();
+  });
+}
+
 document.documentElement.classList.add("motion-ready");
 
 const pageProgress = document.createElement("div");

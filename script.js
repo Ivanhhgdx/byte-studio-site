@@ -44,6 +44,9 @@ const ORGANIC_COLUMNS = 72;
 const basePositions = new Float32Array(PARTICLE_COUNT * 3);
 const positions = new Float32Array(PARTICLE_COUNT * 3);
 const introPositions = new Float32Array(PARTICLE_COUNT * 3);
+const introDynamics = new Float32Array(PARTICLE_COUNT * 4);
+const INTRO_DURATION = 5.2;
+const entranceMotion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const scrollScatterPositions = new Float32Array(PARTICLE_COUNT * 3);
 const seeds = new Float32Array(PARTICLE_COUNT);
 const gradientValues = new Float32Array(PARTICLE_COUNT);
@@ -888,6 +891,7 @@ const material = new THREE.ShaderMaterial({
     uTime: { value: 0 },
     uPixelRatio: { value: renderer.getPixelRatio() },
     uDarkMode: { value: 0 },
+    uArrivalPulse: { value: 0 },
   },
   vertexShader: `
     attribute float aSeed;
@@ -895,6 +899,7 @@ const material = new THREE.ShaderMaterial({
     uniform float uTime;
     uniform float uPixelRatio;
     uniform float uDarkMode;
+    uniform float uArrivalPulse;
     varying float vAlpha;
     varying float vGradient;
 
@@ -907,13 +912,14 @@ const material = new THREE.ShaderMaterial({
       vAlpha = mix(0.5, 1.0, depthFade) * mix(0.94, 1.0, breathing);
       vGradient = position.y * 0.18 + position.x * 0.085 + position.z * 0.065;
       float pointSize = mix(3.15 + breathing * 1.25, 4.15 + breathing * 1.35, uDarkMode);
-      gl_PointSize = pointSize * uPixelRatio * (6.5 / -mvPosition.z);
+      gl_PointSize = pointSize * (1.0 + uArrivalPulse * 0.22) * uPixelRatio * (6.5 / -mvPosition.z);
       gl_Position = projectionMatrix * mvPosition;
     }
   `,
   fragmentShader: `
     uniform float uTime;
     uniform float uDarkMode;
+    uniform float uArrivalPulse;
     varying float vAlpha;
     varying float vGradient;
 
@@ -938,6 +944,8 @@ const material = new THREE.ShaderMaterial({
       vec3 vividGradient = min(gradientColor * 1.18, vec3(1.0));
       vec3 finalColor = mix(lightColor, vividGradient, uDarkMode);
       float finalAlpha = mix(vAlpha, min(1.0, vAlpha * 1.38), uDarkMode);
+      finalColor = mix(finalColor, vec3(0.88, 0.96, 1.0), uArrivalPulse * 0.52 * uDarkMode);
+      finalAlpha = min(1.0, finalAlpha + uArrivalPulse * 0.25);
 
       gl_FragColor = vec4(finalColor, finalAlpha * dotMask);
     }
@@ -1051,9 +1059,18 @@ function initializeScreenScatter() {
   const viewHalfWidth = viewHalfHeight * camera.aspect;
 
   for (let i = 0; i < PARTICLE_COUNT; i += 1) {
-    const introX = (hash(i, 101) * 2 - 1) * viewHalfWidth * 1.08;
-    const introY = (hash(i, 102) * 2 - 1) * viewHalfHeight * 1.08;
-    const introZ = (hash(i, 103) * 2 - 1) * 2.1;
+    // Start outside the view's diagonal, including depth, scale and point-size margins.
+    const startAngle = hash(i, 101) * Math.PI * 2;
+    const startRadius = Math.hypot(viewHalfWidth, viewHalfHeight) *
+      (1.5 + hash(i, 102) * 0.8) / cubeGroup.scale.x;
+    const introX = Math.cos(startAngle) * startRadius;
+    const introY = Math.sin(startAngle) * startRadius;
+    const introZ = (hash(i, 103) * 2 - 1) * 1.2;
+    const dynamicsOffset = i * 4;
+    introDynamics[dynamicsOffset] = hash(i, 104) * 0.55;
+    introDynamics[dynamicsOffset + 1] = 2.4 + hash(i, 105) * 2.2;
+    introDynamics[dynamicsOffset + 2] = 0.35 + hash(i, 106) * 1.55;
+    introDynamics[dynamicsOffset + 3] = (hash(i, 107) * 2 - 1) * 0.55;
     const scrollX = (hash(i, 111) * 2 - 1) * viewHalfWidth * 1.16;
     const scrollY = (hash(i, 112) * 2 - 1) * viewHalfHeight * 1.16;
     const scrollZ = (hash(i, 113) * 2 - 1) * 2.4;
@@ -1062,9 +1079,9 @@ function initializeScreenScatter() {
     setPoint(scrollScatterPositions, i, scrollX, scrollY, scrollZ);
   }
 
-  introStartTime = sceneRuntime.elapsed;
-  introActive = true;
-  positions.set(introPositions);
+  introStartTime = entranceMotion ? sceneRuntime.elapsed : -Infinity;
+  introActive = entranceMotion;
+  positions.set(entranceMotion ? introPositions : basePositions);
   geometry.attributes.position.needsUpdate = true;
 }
 
@@ -1359,14 +1376,19 @@ function updateParticles(delta, elapsed) {
     }
   }
 
-  const introRaw = introActive
-    ? clamp01((elapsed - introStartTime - 0.18) / 4.2)
-    : 1;
-  const introBlend = smooth01(introRaw);
-
-  if (introRaw >= 1) {
+  const introTime = elapsed - introStartTime;
+  if (introTime >= INTRO_DURATION) {
     introActive = false;
   }
+  // One small spring response and a soft flash only after every point has arrived.
+  const heartbeatTime = introTime - INTRO_DURATION;
+  const heartbeat = heartbeatTime > 0 && heartbeatTime < 1.4
+    ? -Math.sin(heartbeatTime * 14) * Math.exp(-heartbeatTime * 4.5) * 0.09
+    : 0;
+  const arrivalLight = heartbeatTime > 0 && heartbeatTime < 0.75
+    ? Math.pow(Math.sin(Math.PI * heartbeatTime / 0.75), 2)
+    : 0;
+  material.uniforms.uArrivalPulse.value = arrivalLight;
 
   for (let i = 0; i < PARTICLE_COUNT; i += 1) {
     const offset = i * 3;
@@ -1374,9 +1396,9 @@ function updateParticles(delta, elapsed) {
     const settle = smooth01(clamp01(life));
     const returnPull = 0.00032 + (1 - settle) * 0.00028;
     const breathing = 1 + Math.sin(elapsed * 0.9) * 0.055;
-    const restX = basePositions[offset] * breathing;
-    const restY = basePositions[offset + 1] * breathing;
-    const restZ = basePositions[offset + 2] * breathing;
+    const restX = basePositions[offset] * breathing * (1 + heartbeat);
+    const restY = basePositions[offset + 1] * breathing * (1 - heartbeat * 0.7);
+    const restZ = basePositions[offset + 2] * breathing * (1 + heartbeat);
 
     driftVelocities[offset] += -orbitOffsets[offset] * returnPull;
     driftVelocities[offset + 1] += -orbitOffsets[offset + 1] * returnPull;
@@ -1415,18 +1437,29 @@ function updateParticles(delta, elapsed) {
     let introY = assembledY;
     let introZ = assembledZ;
     if (introActive) {
-      const angle = introBlend * Math.PI * 2 * (1.2 + seeds[i] * 0.3);
+      const dynamicsOffset = i * 4;
+      const progress = clamp01((introTime - introDynamics[dynamicsOffset]) /
+        introDynamics[dynamicsOffset + 1]);
+      const pull = smooth01(progress);
+      const phase = seeds[i] * Math.PI * 2;
+      const angle = (1 - Math.pow(1 - progress, 2)) * Math.PI * 2 *
+        introDynamics[dynamicsOffset + 2];
       const cosine = Math.cos(angle);
       const sine = Math.sin(angle);
       const startX = introPositions[offset];
       const startY = introPositions[offset + 1];
       const startZ = introPositions[offset + 2];
-      const swirlX = startX * cosine - startY * sine;
-      const swirlY = startX * sine + startY * cosine;
-      const swirlZ = startZ + Math.sin(angle) * Math.hypot(startX, startY) * 0.22;
-      introX = THREE.MathUtils.lerp(swirlX, assembledX, introBlend);
-      introY = THREE.MathUtils.lerp(swirlY, assembledY, introBlend);
-      introZ = THREE.MathUtils.lerp(swirlZ, assembledZ, introBlend);
+      const eddy = Math.sin(Math.PI * progress);
+      const radialWave = 1 + eddy * Math.sin(angle * 1.7 + phase) * 0.16;
+      const swirlX = (startX * cosine - startY * sine) * radialWave +
+        eddy * Math.sin(angle * 0.8 + phase) * 0.8;
+      const swirlY = (startX * sine + startY * cosine) * radialWave +
+        eddy * Math.cos(angle * 1.1 + phase) * 0.6;
+      const swirlZ = startZ + eddy * Math.sin(angle + phase) *
+        introDynamics[dynamicsOffset + 3] * 2;
+      introX = THREE.MathUtils.lerp(swirlX, assembledX, pull);
+      introY = THREE.MathUtils.lerp(swirlY, assembledY, pull);
+      introZ = THREE.MathUtils.lerp(swirlZ, assembledZ, pull);
     }
 
     positions[offset] = THREE.MathUtils.lerp(
