@@ -910,10 +910,12 @@ const material = new THREE.ShaderMaterial({
     varying float vAlpha;
     varying float vGradient;
     varying float vImpulse;
+    varying float vStreamKeep;
 
     void main() {
       vec3 animatedPosition = position;
       vImpulse = 0.0;
+      vStreamKeep = 1.0;
       if (uArrivalTime >= 0.0 && uArrivalTime < 4.8) {
         vec3 normal = normalize(position + vec3(0.0001));
         vec3 axis = normalize(vec3(0.38, 1.0, 0.24));
@@ -950,20 +952,24 @@ const material = new THREE.ShaderMaterial({
       vec2 exitPoint = vec2(cos(exitAngle), sin(exitAngle)) * exitRadius;
       mvPosition.xy = mix(mvPosition.xy, exitPoint, exitEase);
       }
-      if (uFlyThrough >= 0.0) {
-        // A folded ribbon crosses the camera after the original figure has exited.
-        // Different launch times and travel speeds keep the stream from moving as a slab.
-        float flight = clamp((uFlyThrough - aSeed * 0.30) /
-          (0.56 + fract(aSeed * 19.73) * 0.10), 0.0, 1.0);
-        float across = aGradient * 2.0 - 1.0;
-        float phase = aSeed * 5.8 - uFlyThrough * 2.1;
-        float twist = phase * 1.35 + uFlyThrough * 2.0;
-        float depth = -7.8 + sin(twist) * across * 1.65 + cos(phase) * 0.85;
-        float ribbonX = mix(-1.6, 1.6, flight);
-        float ribbonY = sin(phase) * 0.36 + across * cos(twist) * 0.22;
-        mvPosition = vec4(ribbonX * uViewSlope.x * -depth,
-          ribbonY * uViewSlope.y * -depth, depth, 1.0);
-        vImpulse = 0.0;
+      if (uFlyThrough >= 0.14) {
+        // A slow, wide stream crosses the camera only after the breakup.
+        // Every particle gets its own start offset and speed, so the stream
+        // reads as a living flow instead of a compact block.
+        float streamProgress = clamp((uFlyThrough - 0.14) / 0.86, 0.0, 1.0);
+        float speed = 0.84 + fract(aSeed * 17.31) * 0.42;
+        float startOffset = fract(aSeed * 43.17) * 0.32;
+        float travel = streamProgress * speed + startOffset;
+        float lane = aGradient * 2.0 - 1.0;
+        float x = -8.0 + travel * 16.0;
+        float phase = x * 0.57 - streamProgress * 2.4;
+        float crest = sin(phase) * 0.95 + sin(x * 0.24 + streamProgress * 3.0) * 0.32;
+        float y = crest + lane * 1.42 + sin(aSeed * 31.0) * 0.12;
+        float z = -8.5 + cos(phase * 0.72) * 1.35 + lane * 0.52 +
+          cos(aSeed * 29.0) * 0.45;
+        mvPosition = vec4(x, y, z, 1.0);
+        // Leave breathing room between points during the flight only.
+        vStreamKeep = step(fract(aSeed * 91.1), 0.46);
       }
 
       float depthFade = smoothstep(-6.2, -2.1, mvPosition.z);
@@ -984,6 +990,7 @@ const material = new THREE.ShaderMaterial({
     varying float vAlpha;
     varying float vGradient;
     varying float vImpulse;
+    varying float vStreamKeep;
 
     void main() {
       vec2 centered = gl_PointCoord - vec2(0.5);
@@ -991,6 +998,7 @@ const material = new THREE.ShaderMaterial({
       float dotMask = smoothstep(0.5, 0.32, dist);
 
       if (dotMask <= 0.01) discard;
+      if (vStreamKeep < 0.5) discard;
 
       float gradientAngle = (vGradient + uTime * 0.03) * 6.2831853;
       float violetWeight = pow(0.5 + 0.5 * cos(gradientAngle), 3.0);
@@ -1165,7 +1173,7 @@ function updateHeroProgress() {
   // Three readable beats: copy leaves, the figure disperses, then the stream
   // enters only after the last particles have cleared the frame.
   const disintegrationStart = 0.48;
-  const waveStart = 0.80;
+  const waveStart = 0.70;
   scrollScatterTarget = smooth01(clamp01((raw - disintegrationStart) /
     (waveStart - disintegrationStart)));
   flyThroughTarget = smooth01(clamp01((raw - waveStart) / (1 - waveStart)));
@@ -1413,7 +1421,9 @@ function updateParticles(delta, elapsed) {
   scrollScatterProgress +=
     (scrollScatterTarget - scrollScatterProgress) * scrollEase;
   material.uniforms.uScrollExit.value = scrollScatterProgress;
-  flyThroughProgress += (flyThroughTarget - flyThroughProgress) * scrollEase;
+  // The page can move quickly, while the stream keeps its own calmer inertia.
+  const flyEase = 1 - Math.exp(-delta * 0.36);
+  flyThroughProgress += (flyThroughTarget - flyThroughProgress) * flyEase;
   material.uniforms.uFlyThrough.value = flyThroughProgress > 0.0001 ? flyThroughProgress : -1;
   const copyExit = smooth01(clamp01(scrollScatterProgress));
   const copyOpacity = revealProgress * (1 - copyExit);
