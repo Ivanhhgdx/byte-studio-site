@@ -1159,16 +1159,19 @@ function updateHeroProgress() {
   // Keep the page scroll independent from the scene: scrolling never waits for
   // a particle animation to finish. The final part of the hero is reserved for
   // the left-to-right passage, but native scroll remains continuous.
-  const flightDistance = heroStage.offsetHeight;
   const scrollable = Math.max(hero.offsetHeight - window.innerHeight, 1);
   const scrolled = -hero.getBoundingClientRect().top;
   const raw = clamp01(scrolled / scrollable);
-  flyThroughTarget = clamp01((raw - 0.58) / 0.42);
+  // Three readable beats: copy leaves, the figure disperses, then the stream
+  // enters only after the last particles have cleared the frame.
+  const disintegrationStart = 0.48;
+  const waveStart = 0.80;
+  scrollScatterTarget = smooth01(clamp01((raw - disintegrationStart) /
+    (waveStart - disintegrationStart)));
+  flyThroughTarget = smooth01(clamp01((raw - waveStart) / (1 - waveStart)));
   const revealStart = compactLayout ? 0.1 : 0.08;
   const revealDuration = compactLayout ? 0.46 : 0.3;
   const reveal = smooth01(clamp01((raw - revealStart) / revealDuration));
-  scrollScatterTarget = smooth01(clamp01((raw - 0.7) / 0.3));
-
   revealTarget = reveal;
 }
 
