@@ -880,7 +880,7 @@ function initializeRandomOpeningShape() {
 initializeRandomOpeningShape();
 
 const geometry = new THREE.BufferGeometry();
-geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage));
 geometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
 geometry.setAttribute("aGradient", new THREE.BufferAttribute(gradientValues, 1));
 
@@ -891,7 +891,7 @@ const material = new THREE.ShaderMaterial({
     uTime: { value: 0 },
     uPixelRatio: { value: renderer.getPixelRatio() },
     uDarkMode: { value: 0 },
-    uArrivalPulse: { value: 0 },
+    uArrivalTime: { value: -1 },
   },
   vertexShader: `
     attribute float aSeed;
@@ -899,12 +899,33 @@ const material = new THREE.ShaderMaterial({
     uniform float uTime;
     uniform float uPixelRatio;
     uniform float uDarkMode;
-    uniform float uArrivalPulse;
+    uniform float uArrivalTime;
     varying float vAlpha;
     varying float vGradient;
+    varying float vImpulse;
 
     void main() {
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vec3 animatedPosition = position;
+      vImpulse = 0.0;
+      if (uArrivalTime >= 0.0 && uArrivalTime < 1.5) {
+        vec3 normal = normalize(position + vec3(0.0001));
+        vec3 axis = normalize(vec3(0.38, 1.0, 0.24));
+        float surface = dot(normal, axis);
+        float front = surface + 1.35 - uArrivalTime * 3.15;
+        float wave = exp(-front * front * 22.0);
+        float echoFront = front + 0.58;
+        float echo = exp(-echoFront * echoFront * 28.0);
+        float lastFront = front + 1.12;
+        float lastEcho = exp(-lastFront * lastFront * 32.0);
+        float envelope = smoothstep(0.0, 0.10, uArrivalTime) *
+          (1.0 - smoothstep(1.12, 1.5, uArrivalTime));
+        // A travelling crest, elastic recoil and a second smaller impulse.
+        float displacement = (wave * 0.34 - echo * 0.19 + lastEcho * 0.12) * envelope;
+        animatedPosition += normal * displacement;
+        animatedPosition += cross(axis, normal) * (wave - echo) * envelope * 0.12;
+        vImpulse = clamp((wave + echo * 0.72 + lastEcho * 0.48) * envelope, 0.0, 1.0);
+      }
+      vec4 mvPosition = modelViewMatrix * vec4(animatedPosition, 1.0);
 
       float depthFade = smoothstep(-6.2, -2.1, mvPosition.z);
       float breathing = 0.5 + 0.5 * sin(uTime * 1.35 + aSeed * 6.28318);
@@ -912,16 +933,17 @@ const material = new THREE.ShaderMaterial({
       vAlpha = mix(0.5, 1.0, depthFade) * mix(0.94, 1.0, breathing);
       vGradient = position.y * 0.18 + position.x * 0.085 + position.z * 0.065;
       float pointSize = mix(3.15 + breathing * 1.25, 4.15 + breathing * 1.35, uDarkMode);
-      gl_PointSize = pointSize * (1.0 + uArrivalPulse * 0.22) * uPixelRatio * (6.5 / -mvPosition.z);
+      gl_PointSize = pointSize * (1.0 + vImpulse * 0.40) * uPixelRatio * (6.5 / -mvPosition.z);
       gl_Position = projectionMatrix * mvPosition;
     }
   `,
   fragmentShader: `
     uniform float uTime;
     uniform float uDarkMode;
-    uniform float uArrivalPulse;
+    uniform float uArrivalTime;
     varying float vAlpha;
     varying float vGradient;
+    varying float vImpulse;
 
     void main() {
       vec2 centered = gl_PointCoord - vec2(0.5);
@@ -944,8 +966,12 @@ const material = new THREE.ShaderMaterial({
       vec3 vividGradient = min(gradientColor * 1.18, vec3(1.0));
       vec3 finalColor = mix(lightColor, vividGradient, uDarkMode);
       float finalAlpha = mix(vAlpha, min(1.0, vAlpha * 1.38), uDarkMode);
-      finalColor = mix(finalColor, vec3(0.88, 0.96, 1.0), uArrivalPulse * 0.52 * uDarkMode);
-      finalAlpha = min(1.0, finalAlpha + uArrivalPulse * 0.25);
+      // Boost chroma instead of whitening the points along the travelling impulse.
+      float lowestChannel = min(gradientColor.r, min(gradientColor.g, gradientColor.b));
+      vec3 saturatedColor = max(gradientColor - vec3(lowestChannel * 0.82), vec3(0.0));
+      saturatedColor /= max(max(saturatedColor.r, max(saturatedColor.g, saturatedColor.b)), 0.001);
+      finalColor = mix(finalColor, saturatedColor, vImpulse * 0.92 * uDarkMode);
+      finalAlpha = min(1.0, finalAlpha + vImpulse * 0.42);
 
       gl_FragColor = vec4(finalColor, finalAlpha * dotMask);
     }
@@ -1321,6 +1347,15 @@ function updateShapeMorph(delta) {
   }
 }
 
+const sceneStyleValues = new WeakMap();
+function setSceneStyle(element, property, value) {
+  let values = sceneStyleValues.get(element);
+  if (!values) { values = new Map(); sceneStyleValues.set(element, values); }
+  if (values.get(property) === value) return;
+  values.set(property, value);
+  element.style.setProperty(property, value);
+}
+
 function updateParticles(delta, elapsed) {
   let activeChaos = 0;
   let displacedCount = 0;
@@ -1337,14 +1372,14 @@ function updateParticles(delta, elapsed) {
   const blurProgress = smooth01(clamp01(revealProgress)) * (1 - copyExit);
   const particleBlur = blurProgress * (compactLayout ? 3.2 : 4);
   const particleScale = 1 + blurProgress * 0.012;
-  heroStage.style.setProperty("--copy-opacity", copyOpacity.toFixed(3));
-  heroStage.style.setProperty("--copy-y", `${copyY}px`);
-  heroStage.style.setProperty("--copy-scale", copyScale.toFixed(3));
-  heroStage.style.setProperty("--copy-events", copyOpacity > 0.92 ? "auto" : "none");
+  setSceneStyle(heroStage, "--copy-opacity", copyOpacity.toFixed(3));
+  setSceneStyle(heroStage, "--copy-y", `${copyY}px`);
+  setSceneStyle(heroStage, "--copy-scale", copyScale.toFixed(3));
+  setSceneStyle(heroStage, "--copy-events", copyOpacity > 0.92 ? "auto" : "none");
   const blur = particleBlur.toFixed(2);
   const scale = particleScale.toFixed(4);
-  sceneWrap.style.setProperty("--particle-filter", Number(blur) ? `blur(${blur}px)` : "none");
-  sceneWrap.style.setProperty("--particle-transform", Number(scale) !== 1 ? `scale(${scale})` : "none");
+  setSceneStyle(sceneWrap, "--particle-filter", Number(blur) ? `blur(${blur}px)` : "none");
+  setSceneStyle(sceneWrap, "--particle-transform", Number(scale) !== 1 ? `scale(${scale})` : "none");
 
   const wasMorphing = morphProgress < 1;
   updateShapeMorph(delta);
@@ -1380,25 +1415,21 @@ function updateParticles(delta, elapsed) {
   if (introTime >= INTRO_DURATION) {
     introActive = false;
   }
-  // One small spring response and a soft flash only after every point has arrived.
-  const heartbeatTime = introTime - INTRO_DURATION;
-  const heartbeat = heartbeatTime > 0 && heartbeatTime < 1.4
-    ? -Math.sin(heartbeatTime * 14) * Math.exp(-heartbeatTime * 4.5) * 0.09
-    : 0;
-  const arrivalLight = heartbeatTime > 0 && heartbeatTime < 0.75
-    ? Math.pow(Math.sin(Math.PI * heartbeatTime / 0.75), 2)
-    : 0;
-  material.uniforms.uArrivalPulse.value = arrivalLight;
+  const waveTime = introTime - INTRO_DURATION;
+  material.uniforms.uArrivalTime.value = waveTime >= 0 && waveTime < 1.5 ? waveTime : -1;
+  const breathing = 1 + Math.sin(elapsed * 0.9) * 0.055;
+  const lifeDecay = Math.pow(0.9965, delta * 60);
+  const radiusDecay = Math.pow(0.9982, delta * 60);
+  const driftDecay = Math.pow(0.985, delta * 60);
 
   for (let i = 0; i < PARTICLE_COUNT; i += 1) {
     const offset = i * 3;
     const life = scatterLife[i];
     const settle = smooth01(clamp01(life));
     const returnPull = 0.00032 + (1 - settle) * 0.00028;
-    const breathing = 1 + Math.sin(elapsed * 0.9) * 0.055;
-    const restX = basePositions[offset] * breathing * (1 + heartbeat);
-    const restY = basePositions[offset + 1] * breathing * (1 - heartbeat * 0.7);
-    const restZ = basePositions[offset + 2] * breathing * (1 + heartbeat);
+    const restX = basePositions[offset] * breathing;
+    const restY = basePositions[offset + 1] * breathing;
+    const restZ = basePositions[offset + 2] * breathing;
 
     driftVelocities[offset] += -orbitOffsets[offset] * returnPull;
     driftVelocities[offset + 1] += -orbitOffsets[offset + 1] * returnPull;
@@ -1406,9 +1437,9 @@ function updateParticles(delta, elapsed) {
     orbitOffsets[offset] += driftVelocities[offset] * delta * 60;
     orbitOffsets[offset + 1] += driftVelocities[offset + 1] * delta * 60;
     orbitOffsets[offset + 2] += driftVelocities[offset + 2] * delta * 60;
-    driftVelocities[offset] *= 0.985;
-    driftVelocities[offset + 1] *= 0.985;
-    driftVelocities[offset + 2] *= 0.985;
+    driftVelocities[offset] *= driftDecay;
+    driftVelocities[offset + 1] *= driftDecay;
+    driftVelocities[offset + 2] *= driftDecay;
 
     const radius = orbitRadii[i] * settle;
     const phase =
@@ -1416,22 +1447,24 @@ function updateParticles(delta, elapsed) {
       elapsed * orbitSpeeds[i] +
       Math.sin(elapsed * 0.12 + seeds[i] * 12.0) * 0.18;
     const ellipse = 0.55 + seeds[i] * 0.38;
+    const orbitCosine = Math.cos(phase);
+    const orbitSine = Math.sin(phase);
 
     const assembledX =
       restX +
       orbitOffsets[offset] * settle +
-      orbitAxesA[offset] * Math.cos(phase) * radius +
-      orbitAxesB[offset] * Math.sin(phase) * radius * ellipse;
+      orbitAxesA[offset] * orbitCosine * radius +
+      orbitAxesB[offset] * orbitSine * radius * ellipse;
     const assembledY =
       restY +
       orbitOffsets[offset + 1] * settle +
-      orbitAxesA[offset + 1] * Math.cos(phase) * radius +
-      orbitAxesB[offset + 1] * Math.sin(phase) * radius * ellipse;
+      orbitAxesA[offset + 1] * orbitCosine * radius +
+      orbitAxesB[offset + 1] * orbitSine * radius * ellipse;
     const assembledZ =
       restZ +
       orbitOffsets[offset + 2] * settle +
-      orbitAxesA[offset + 2] * Math.cos(phase) * radius +
-      orbitAxesB[offset + 2] * Math.sin(phase) * radius * ellipse;
+      orbitAxesA[offset + 2] * orbitCosine * radius +
+      orbitAxesB[offset + 2] * orbitSine * radius * ellipse;
     // Only the entrance follows a vortex. Its radius and velocity settle to zero.
     let introX = assembledX;
     let introY = assembledY;
@@ -1478,8 +1511,8 @@ function updateParticles(delta, elapsed) {
       scrollScatterProgress
     );
 
-    scatterLife[i] *= Math.pow(0.9965, delta * 60);
-    orbitRadii[i] *= Math.pow(0.9982, delta * 60);
+    scatterLife[i] *= lifeDecay;
+    orbitRadii[i] *= radiusDecay;
     activeChaos += scatterLife[i];
 
     const effectiveDisplacement =
