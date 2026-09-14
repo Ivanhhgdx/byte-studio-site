@@ -907,23 +907,30 @@ const material = new THREE.ShaderMaterial({
     void main() {
       vec3 animatedPosition = position;
       vImpulse = 0.0;
-      if (uArrivalTime >= 0.0 && uArrivalTime < 1.5) {
+      if (uArrivalTime >= 0.0 && uArrivalTime < 4.8) {
         vec3 normal = normalize(position + vec3(0.0001));
         vec3 axis = normalize(vec3(0.38, 1.0, 0.24));
         float surface = dot(normal, axis);
-        float front = surface + 1.35 - uArrivalTime * 3.15;
-        float wave = exp(-front * front * 22.0);
-        float echoFront = front + 0.58;
-        float echo = exp(-echoFront * echoFront * 28.0);
-        float lastFront = front + 1.12;
-        float lastEcho = exp(-lastFront * lastFront * 32.0);
-        float envelope = smoothstep(0.0, 0.10, uArrivalTime) *
-          (1.0 - smoothstep(1.12, 1.5, uArrivalTime));
-        // A travelling crest, elastic recoil and a second smaller impulse.
-        float displacement = (wave * 0.34 - echo * 0.19 + lastEcho * 0.12) * envelope;
+        float travel = uArrivalTime * 1.75;
+        // Reflect beyond each pole, so the crest returns without a hard reversal.
+        float outward = surface + 1.3 - travel;
+        float reflected = surface - 3.9 + travel;
+        float returning = surface + 6.5 - travel;
+        float wave = exp(-outward * outward * 15.0);
+        float reflection = exp(-reflected * reflected * 15.0);
+        float lastReflection = exp(-returning * returning * 15.0);
+        float recoilFront = outward + 0.42;
+        float recoil = exp(-recoilFront * recoilFront * 20.0);
+        float envelope = smoothstep(0.0, 0.20, uArrivalTime) *
+          exp(-uArrivalTime * 0.22) *
+          (1.0 - smoothstep(4.0, 4.8, uArrivalTime));
+        float displacement = (wave - recoil * 0.25 - reflection * 0.48 +
+          lastReflection * 0.22) * envelope * 0.20;
         animatedPosition += normal * displacement;
-        animatedPosition += cross(axis, normal) * (wave - echo) * envelope * 0.12;
-        vImpulse = clamp((wave + echo * 0.72 + lastEcho * 0.48) * envelope, 0.0, 1.0);
+        animatedPosition += cross(axis, normal) *
+          (wave - reflection * 0.48 + lastReflection * 0.22) * envelope * 0.055;
+        vImpulse = clamp((wave * 0.65 + reflection * 0.34 +
+          lastReflection * 0.17) * envelope, 0.0, 1.0);
       }
       vec4 mvPosition = modelViewMatrix * vec4(animatedPosition, 1.0);
 
@@ -1416,7 +1423,7 @@ function updateParticles(delta, elapsed) {
     introActive = false;
   }
   const waveTime = introTime - INTRO_DURATION;
-  material.uniforms.uArrivalTime.value = waveTime >= 0 && waveTime < 1.5 ? waveTime : -1;
+  material.uniforms.uArrivalTime.value = waveTime >= 0 && waveTime < 4.8 ? waveTime : -1;
   const breathing = 1 + Math.sin(elapsed * 0.9) * 0.055;
   const lifeDecay = Math.pow(0.9965, delta * 60);
   const radiusDecay = Math.pow(0.9982, delta * 60);
