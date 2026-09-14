@@ -85,6 +85,8 @@ let revealProgress = 0;
 let revealTarget = 0;
 let scrollScatterProgress = 0;
 let scrollScatterTarget = 0;
+let flyThroughProgress = 0;
+let flyThroughTarget = 0;
 let introStartTime = 0;
 let introActive = true;
 let compactLayout = false;
@@ -892,6 +894,7 @@ const material = new THREE.ShaderMaterial({
     uDarkMode: { value: 0 },
     uArrivalTime: { value: -1 },
     uScrollExit: { value: 0 },
+    uFlyThrough: { value: -1 },
     uViewSlope: { value: new THREE.Vector2(1, 1) },
   },
   vertexShader: `
@@ -902,6 +905,7 @@ const material = new THREE.ShaderMaterial({
     uniform float uDarkMode;
     uniform float uArrivalTime;
     uniform float uScrollExit;
+    uniform float uFlyThrough;
     uniform vec2 uViewSlope;
     varying float vAlpha;
     varying float vGradient;
@@ -946,12 +950,28 @@ const material = new THREE.ShaderMaterial({
       vec2 exitPoint = vec2(cos(exitAngle), sin(exitAngle)) * exitRadius;
       mvPosition.xy = mix(mvPosition.xy, exitPoint, exitEase);
       }
+      if (uFlyThrough >= 0.0) {
+        // A folded ribbon crosses the camera after the original figure has exited.
+        // Different launch times and travel speeds keep the stream from moving as a slab.
+        float flight = clamp((uFlyThrough - aSeed * 0.30) /
+          (0.56 + fract(aSeed * 19.73) * 0.10), 0.0, 1.0);
+        float across = aGradient * 2.0 - 1.0;
+        float phase = aSeed * 5.8 - uFlyThrough * 2.1;
+        float twist = phase * 1.35 + uFlyThrough * 2.0;
+        float depth = -7.8 + sin(twist) * across * 1.65 + cos(phase) * 0.85;
+        float ribbonX = mix(-1.6, 1.6, flight);
+        float ribbonY = sin(phase) * 0.36 + across * cos(twist) * 0.22;
+        mvPosition = vec4(ribbonX * uViewSlope.x * -depth,
+          ribbonY * uViewSlope.y * -depth, depth, 1.0);
+        vImpulse = 0.0;
+      }
 
       float depthFade = smoothstep(-6.2, -2.1, mvPosition.z);
       float breathing = 0.5 + 0.5 * sin(uTime * 1.35 + aSeed * 6.28318);
 
       vAlpha = mix(0.5, 1.0, depthFade) * mix(0.94, 1.0, breathing);
       vGradient = position.y * 0.18 + position.x * 0.085 + position.z * 0.065;
+      if (uFlyThrough >= 0.0) vGradient = aSeed * 0.85 + aGradient * 0.15;
       float pointSize = mix(3.15 + breathing * 1.25, 4.15 + breathing * 1.35, uDarkMode);
       gl_PointSize = pointSize * (1.0 + vImpulse * 0.40) * uPixelRatio * (6.5 / -mvPosition.z);
       gl_Position = projectionMatrix * mvPosition;
@@ -1136,8 +1156,11 @@ function clamp01(value) {
 function updateHeroProgress() {
   if (!heroStage || !hero) return;
 
-  const scrollable = Math.max(hero.offsetHeight - window.innerHeight, 1);
-  const raw = clamp01(-hero.getBoundingClientRect().top / scrollable);
+  const flightDistance = heroStage.offsetHeight;
+  const scrollable = Math.max(hero.offsetHeight - window.innerHeight - flightDistance, 1);
+  const scrolled = -hero.getBoundingClientRect().top;
+  const raw = clamp01(scrolled / scrollable);
+  flyThroughTarget = clamp01((scrolled - scrollable) / flightDistance);
   const revealStart = compactLayout ? 0.1 : 0.08;
   const revealDuration = compactLayout ? 0.46 : 0.3;
   const reveal = smooth01(clamp01((raw - revealStart) / revealDuration));
@@ -1384,6 +1407,8 @@ function updateParticles(delta, elapsed) {
   scrollScatterProgress +=
     (scrollScatterTarget - scrollScatterProgress) * scrollEase;
   material.uniforms.uScrollExit.value = scrollScatterProgress;
+  flyThroughProgress += (flyThroughTarget - flyThroughProgress) * scrollEase;
+  material.uniforms.uFlyThrough.value = flyThroughProgress > 0.0001 ? flyThroughProgress : -1;
   const copyExit = smooth01(clamp01(scrollScatterProgress));
   const copyOpacity = revealProgress * (1 - copyExit);
   const copyY = Math.round(64 - revealProgress * 64 - copyExit * 140);
