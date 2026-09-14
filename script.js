@@ -47,7 +47,6 @@ const introPositions = new Float32Array(PARTICLE_COUNT * 3);
 const introDynamics = new Float32Array(PARTICLE_COUNT * 4);
 const INTRO_DURATION = 5.2;
 const entranceMotion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const scrollScatterPositions = new Float32Array(PARTICLE_COUNT * 3);
 const seeds = new Float32Array(PARTICLE_COUNT);
 const gradientValues = new Float32Array(PARTICLE_COUNT);
 const scatterLife = new Float32Array(PARTICLE_COUNT);
@@ -892,6 +891,8 @@ const material = new THREE.ShaderMaterial({
     uPixelRatio: { value: renderer.getPixelRatio() },
     uDarkMode: { value: 0 },
     uArrivalTime: { value: -1 },
+    uScrollExit: { value: 0 },
+    uViewSlope: { value: new THREE.Vector2(1, 1) },
   },
   vertexShader: `
     attribute float aSeed;
@@ -900,6 +901,8 @@ const material = new THREE.ShaderMaterial({
     uniform float uPixelRatio;
     uniform float uDarkMode;
     uniform float uArrivalTime;
+    uniform float uScrollExit;
+    uniform vec2 uViewSlope;
     varying float vAlpha;
     varying float vGradient;
     varying float vImpulse;
@@ -933,6 +936,16 @@ const material = new THREE.ShaderMaterial({
           lastReflection * 0.17) * envelope, 0.0, 1.0);
       }
       vec4 mvPosition = modelViewMatrix * vec4(animatedPosition, 1.0);
+      // Scatter in camera space: every trajectory ends beyond the viewport,
+      // even while the underlying figure rotates or the screen is resized.
+      if (uScrollExit > 0.0001) {
+      float exitProgress = clamp(uScrollExit / (0.62 + aSeed * 0.32), 0.0, 1.0);
+      float exitEase = exitProgress * exitProgress * (2.0 - exitProgress);
+      float exitAngle = atan(mvPosition.y + 0.00001, mvPosition.x + 0.00001) + (aSeed - 0.5) * exitProgress * 0.7;
+      float exitRadius = length(uViewSlope) * max(-mvPosition.z, 0.1) * (1.4 + aSeed * 0.7);
+      vec2 exitPoint = vec2(cos(exitAngle), sin(exitAngle)) * exitRadius;
+      mvPosition.xy = mix(mvPosition.xy, exitPoint, exitEase);
+      }
 
       float depthFade = smoothstep(-6.2, -2.1, mvPosition.z);
       float breathing = 0.5 + 0.5 * sin(uTime * 1.35 + aSeed * 6.28318);
@@ -1083,6 +1096,8 @@ const resize = createRenderSizeSync(renderer, canvas, (width, height, pixelRatio
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   material.uniforms.uPixelRatio.value = pixelRatio;
+  const viewSlope = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5));
+  material.uniforms.uViewSlope.value.set(viewSlope * camera.aspect, viewSlope);
   updateHeroProgress();
 }, () => window.devicePixelRatio);
 
@@ -1104,12 +1119,8 @@ function initializeScreenScatter() {
     introDynamics[dynamicsOffset + 1] = 2.4 + hash(i, 105) * 2.2;
     introDynamics[dynamicsOffset + 2] = 0.35 + hash(i, 106) * 1.55;
     introDynamics[dynamicsOffset + 3] = (hash(i, 107) * 2 - 1) * 0.55;
-    const scrollX = (hash(i, 111) * 2 - 1) * viewHalfWidth * 1.16;
-    const scrollY = (hash(i, 112) * 2 - 1) * viewHalfHeight * 1.16;
-    const scrollZ = (hash(i, 113) * 2 - 1) * 2.4;
 
     setPoint(introPositions, i, introX, introY, introZ);
-    setPoint(scrollScatterPositions, i, scrollX, scrollY, scrollZ);
   }
 
   introStartTime = entranceMotion ? sceneRuntime.elapsed : -Infinity;
@@ -1372,6 +1383,7 @@ function updateParticles(delta, elapsed) {
   revealProgress += (revealTarget - revealProgress) * revealEase;
   scrollScatterProgress +=
     (scrollScatterTarget - scrollScatterProgress) * scrollEase;
+  material.uniforms.uScrollExit.value = scrollScatterProgress;
   const copyExit = smooth01(clamp01(scrollScatterProgress));
   const copyOpacity = revealProgress * (1 - copyExit);
   const copyY = Math.round(64 - revealProgress * 64 - copyExit * 140);
@@ -1502,21 +1514,9 @@ function updateParticles(delta, elapsed) {
       introZ = THREE.MathUtils.lerp(swirlZ, assembledZ, pull);
     }
 
-    positions[offset] = THREE.MathUtils.lerp(
-      introX,
-      scrollScatterPositions[offset],
-      scrollScatterProgress
-    );
-    positions[offset + 1] = THREE.MathUtils.lerp(
-      introY,
-      scrollScatterPositions[offset + 1],
-      scrollScatterProgress
-    );
-    positions[offset + 2] = THREE.MathUtils.lerp(
-      introZ,
-      scrollScatterPositions[offset + 2],
-      scrollScatterProgress
-    );
+    positions[offset] = introX;
+    positions[offset + 1] = introY;
+    positions[offset + 2] = introZ;
 
     scatterLife[i] *= lifeDecay;
     orbitRadii[i] *= radiusDecay;
