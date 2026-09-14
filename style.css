@@ -3531,3 +3531,36 @@ a {
 
 .system-video-section .section-heading { align-items: center; }
 .system-video-section .section-heading h2 { margin: 0; font-size: clamp(1.8rem, 3.2vw, 3rem); line-height: 1.1; }
+
+/* Quiet line-by-line arrivals, based on the actual responsive text layout. */
+[data-reveal].line-reveal-host[data-reveal-style] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  clip-path: none;
+  will-change: auto;
+}
+[data-line-reveal] .line-word {
+  display: inline-block;
+  vertical-align: baseline;
+  opacity: 0;
+  transform: translate3d(0, 0.65em, 0);
+  clip-path: inset(-0.15em -0.1em 100%);
+  transition: opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 880ms cubic-bezier(0.16, 1, 0.3, 1),
+    clip-path 880ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--line-delay, 0ms);
+}
+[data-line-reveal].lines-visible .line-word {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(-0.15em -0.1em -0.15em);
+}
+@media (prefers-reduced-motion: reduce), print {
+  [data-line-reveal] .line-word {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+    transition: none;
+  }
+}

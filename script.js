@@ -1360,7 +1360,7 @@ function updateParticles(delta, elapsed) {
   }
 
   const introRaw = introActive
-    ? clamp01((elapsed - introStartTime - 0.18) / 3.2)
+    ? clamp01((elapsed - introStartTime - 0.18) / 4.2)
     : 1;
   const introBlend = smooth01(introRaw);
 
@@ -1410,9 +1410,24 @@ function updateParticles(delta, elapsed) {
       orbitOffsets[offset + 2] * settle +
       orbitAxesA[offset + 2] * Math.cos(phase) * radius +
       orbitAxesB[offset + 2] * Math.sin(phase) * radius * ellipse;
-    const introX = THREE.MathUtils.lerp(introPositions[offset], assembledX, introBlend);
-    const introY = THREE.MathUtils.lerp(introPositions[offset + 1], assembledY, introBlend);
-    const introZ = THREE.MathUtils.lerp(introPositions[offset + 2], assembledZ, introBlend);
+    // Only the entrance follows a vortex. Its radius and velocity settle to zero.
+    let introX = assembledX;
+    let introY = assembledY;
+    let introZ = assembledZ;
+    if (introActive) {
+      const angle = introBlend * Math.PI * 2 * (1.2 + seeds[i] * 0.3);
+      const cosine = Math.cos(angle);
+      const sine = Math.sin(angle);
+      const startX = introPositions[offset];
+      const startY = introPositions[offset + 1];
+      const startZ = introPositions[offset + 2];
+      const swirlX = startX * cosine - startY * sine;
+      const swirlY = startX * sine + startY * cosine;
+      const swirlZ = startZ + Math.sin(angle) * Math.hypot(startX, startY) * 0.22;
+      introX = THREE.MathUtils.lerp(swirlX, assembledX, introBlend);
+      introY = THREE.MathUtils.lerp(swirlY, assembledY, introBlend);
+      introZ = THREE.MathUtils.lerp(swirlZ, assembledZ, introBlend);
+    }
 
     positions[offset] = THREE.MathUtils.lerp(
       introX,

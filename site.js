@@ -93,6 +93,78 @@ if (reducedMotion) {
   revealElements.forEach((element) => revealObserver.observe(element));
 }
 
+// Animate words on the same rendered line together; keep inline links and emphasis intact.
+const initLineReveal = () => {
+  if (reducedMotion || !('IntersectionObserver' in window)) return;
+  const selector = [
+    '.inner-page main p:not(.section-index):not(.detail-number):not(.detail-label):not(.starter-price)',
+    '.inner-page main li', '.process-detail small', '.section-lead', '.about-text',
+    '.home-service-list a > p', '.home-tasks article > p', '.home-process li > p',
+    '.capability-grid li', '.pricing-grid article > span',
+    '.concept-layout > div > p:not(.section-index)', '.trust-grid h3'
+  ].join(',');
+  const pending = new Set();
+  const measure = (element) => {
+    let top = null;
+    let line = -1;
+    element.querySelectorAll('.line-word').forEach((word) => {
+      const nextTop = word.offsetTop;
+      if (top === null || Math.abs(nextTop - top) > 3) {
+        top = nextTop;
+        line += 1;
+      }
+      word.style.setProperty('--line-delay', `${Math.min(line, 12) * 105}ms`);
+    });
+  };
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(({ target, isIntersecting }) => {
+      if (!isIntersecting) return;
+      measure(target);
+      target.classList.add('lines-visible');
+      pending.delete(target);
+      observer.unobserve(target);
+    });
+  }, { threshold: 0, rootMargin: '0px 0px -9% 0px' });
+  document.querySelectorAll(selector).forEach((element) => {
+    if (element.closest('[data-line-reveal]') || !element.textContent.trim()) return;
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach((node) => {
+      const fragment = document.createDocumentFragment();
+      node.textContent.split(/(\s+)/).forEach((part) => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) fragment.append(document.createTextNode(part));
+        else {
+          const word = document.createElement('span');
+          word.className = 'line-word';
+          word.textContent = part;
+          fragment.append(word);
+        }
+      });
+      node.replaceWith(fragment);
+    });
+    element.setAttribute('data-line-reveal', '');
+    // Avoid competing block transforms and blur over the line animation.
+    let host = element;
+    while (host && host !== document.body) {
+      if (host.hasAttribute('data-reveal')) host.classList.add('line-reveal-host');
+      host = host.parentElement;
+    }
+    measure(element);
+    pending.add(element);
+    observer.observe(element);
+  });
+  let resizeFrame = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => pending.forEach(measure));
+  }, { passive: true });
+};
+// Keep text readable while fonts load and when motion is disabled.
+if (document.fonts) document.fonts.ready.then(initLineReveal);
+else initLineReveal();
+
 document.querySelectorAll("[data-video-player]").forEach((player) => {
   const video = player.querySelector("[data-video]");
   const surface = player.querySelector("[data-video-surface]");
