@@ -1,0 +1,13 @@
+.portfolio-case { padding: clamp(4rem, 8vw, 8rem) 0; background: var(--paper); color: var(--ink); }
+.portfolio-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .7fr); gap: clamp(3rem, 6vw, 6rem); align-items: start; }
+.portfolio-case h2 { font-size: clamp(4rem, 9vw, 9rem); font-weight: 450; letter-spacing: -.075em; line-height: .95; margin: 2rem 0; }
+.portfolio-case p, .portfolio-case li { max-width: 42rem; line-height: 1.65; color: var(--muted-dark); }
+.portfolio-case .portfolio-lead { font-size: clamp(1.3rem, 2vw, 2rem); color: var(--ink); }
+.portfolio-case ul { padding-left: 1.2rem; margin: 2rem 0; }
+.portfolio-limits { border-top: 1px solid var(--line-dark); padding-top: 1.5rem; margin-top: 2rem; }
+.portfolio-case .primary-button { margin-top: 1.5rem; border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.portfolio-note { font-size: .8rem; }
+.portfolio-case figure { margin: 0; }
+.portfolio-case img { display: block; width: 100%; max-width: 574px; height: auto; border-radius: 1rem; }
+.portfolio-case figcaption { margin-top: 1rem; max-width: 36rem; font-size: .8rem; line-height: 1.6; color: var(--muted-dark); }
+@media (max-width: 800px) { .portfolio-grid { grid-template-columns: 1fr; } .portfolio-case figure { max-width: 574px; } }
