@@ -18,7 +18,7 @@ if (capabilityDialog) {
       tasks: ['Собрать обращение и передать его команде', 'Показать услуги и ответы на частые вопросы', 'Организовать запрос на запись или уведомления'],
       result: 'Понятное меню, согласованная логика диалога и передача данных ответственному. Оплату, CRM и дополнительные сценарии обсуждаем отдельно.',
       example: 'Например, бот для записи: выбор услуги → контакт → пожелание по времени → уведомление администратору.',
-      link: './services.html#telegram',
+      link: './telegram-bots.html',
     },
     {
       title: 'Рутина — системе.<br>Внимание — вашему делу.',
@@ -497,6 +497,7 @@ const buildLeadMessage = (data, locationHref) => {
   const referral = String(url.searchParams.get("ref") || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
   return [
     `Тема: ${leadRequestLabels[data.get("request_type")] || leadRequestLabels.project}`,
+    ...(data.get("lead_topic") ? [`Направление: ${data.get("lead_topic")}`] : []),
     `Срок запуска: ${data.get("urgency") === "urgent" ? "Срочный запуск" : "Стандартный срок"}`,
     `Желаемая дата: ${dateLabel}`,
     ...(referral ? [`Код партнёра: ${referral}`] : []),
@@ -536,9 +537,15 @@ document.querySelector("[data-contact-form]")?.addEventListener("submit", async 
   const button = form.querySelector("button[type='submit']");
   const buttonLabel = button.querySelector("span:first-child");
 
+  if (form.dataset.submitting === "true" || form.dataset.sent === "true") return;
   if (!form.reportValidity()) return;
 
   const data = new FormData(form);
+  if (form.dataset.leadTopic) data.set("lead_topic", form.dataset.leadTopic);
+  form.dataset.submitting = "true";
+  form.setAttribute("aria-busy", "true");
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
   button.disabled = true;
   buttonLabel.textContent = "Отправляем…";
   status.textContent = "";
@@ -546,6 +553,7 @@ document.querySelector("[data-contact-form]")?.addEventListener("submit", async 
   try {
     const response = await fetch(contactEndpoint, {
       method: "POST",
+      signal: controller.signal,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: data.get("name"),
@@ -557,15 +565,22 @@ document.querySelector("[data-contact-form]")?.addEventListener("submit", async 
     });
 
     if (!response.ok) throw new Error("Request failed");
+    const confirmation = await response.json();
+    if (confirmation?.ok !== true) throw new Error("Delivery not confirmed");
+    form.dataset.sent = "true";
 
     form.reset();
     button.classList.add("is-sent");
     buttonLabel.textContent = "Заявка отправлена";
-    status.textContent = "Спасибо! Заявка получена. Отвечаем с 10:00 до 22:00 МСК в течение 30 минут, вне этого времени — в течение 24 часов.";
+    status.textContent = "Спасибо! Отправка заявки подтверждена. Свяжемся с вами по указанному контакту.";
   } catch {
     button.disabled = false;
     buttonLabel.textContent = "Повторить отправку";
-    status.textContent = "Не удалось отправить заявку. Попробуйте ещё раз или позвоните: +7 (950) 989-64-67.";
+    status.textContent = "Не удалось подтвердить отправку. Данные сохранены в форме. Если заявка уже дошла, повтор может создать дубликат. Попробуйте ещё раз или позвоните: +7 (950) 989-64-67.";
+  } finally {
+    clearTimeout(timeout);
+    delete form.dataset.submitting;
+    form.removeAttribute("aria-busy");
   }
 });
 
