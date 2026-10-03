@@ -2,6 +2,9 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.m
 import { createRenderSizeSync, createSceneRuntime } from "./scene-runtime.mjs?v=20260908-1";
 import { getPageFlowState } from "./hero-scroll.mjs?v=free-flow-20261003-1";
 
+import { bootParticleScene } from "./scene-fallback.mjs?v=webgl-fallback-20261003-1";
+
+function initializeParticleScene() {
 const canvas = document.querySelector("#cube-canvas");
 const hero = document.querySelector(".hero");
 const heroStage = document.querySelector(".hero-stage");
@@ -1722,3 +1725,7 @@ pageVideos.forEach((video) => {
 });
 
 syncSceneAnimation();
+
+}
+
+bootParticleScene(initializeParticleScene, document);
