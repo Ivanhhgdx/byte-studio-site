@@ -21,3 +21,14 @@ export function getCopyReturnState(previous,current,returned=false) {
  const t=clamp(next/.04);
  return {returned:returning,reveal:returning?t*t*(3-2*t):1};
 }
+// Hero copy uses a nearly critically damped, faster spring, without overshoot
+// in opacity or stacking CSS transitions on the native page transform.
+export function stepRevealSpring(state,target,delta,reducedMotion=false) {
+ target=clamp(target);
+ if(reducedMotion)return {value:target,velocity:0};
+ let value=clamp(state?.value),velocity=Number.isFinite(state?.velocity)?state.velocity:0;
+ const dt=Math.max(0,Math.min(Number.isFinite(delta)?delta:0,.1)),count=Math.max(1,Math.ceil(dt*120)),h=dt/count;
+ for(let i=0;i<count;i++){velocity=Math.max(-1.8,Math.min(1.8,velocity+(100*(target-value)-19*velocity)*h));value+=velocity*h;if(value<0||value>1){value=clamp(value);velocity=0;}}
+ if(Math.abs(value-target)<.00002&&Math.abs(velocity)<.0002){value=target;velocity=0;}
+ return {value,velocity};
+}

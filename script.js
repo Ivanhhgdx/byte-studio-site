@@ -1,7 +1,9 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js";
 import { createRenderSizeSync, createSceneRuntime } from "./scene-runtime.mjs?v=20260908-1";
 import { getPageFlowState } from "./hero-scroll.mjs?v=flow-refinement-20261003-1";
-import { stepScrollSpring, getCopyReturnState } from "./scroll-spring.mjs?v=flow-refinement-20261003-1";
+import { stepScrollSpring, getCopyReturnState, stepRevealSpring } from "./scroll-spring.mjs?v=particle-freedom-local-20261003-1";
+
+import { createParticleDrift } from "./particle-drift.mjs?v=particle-freedom-local-20261003-1";
 
 import { bootParticleScene } from "./scene-fallback.mjs?v=webgl-fallback-20261003-1";
 
@@ -95,6 +97,7 @@ let flyThroughTarget = 0;
 let pageFlowProgress = 0;
 let flowSpring = { value: 0, velocity: 0 };
 let copyReturned = false;
+let revealSpring = { value: 0, velocity: 0 };
 let introStartTime = 0;
 let introActive = true;
 let compactLayout = false;
@@ -902,6 +905,9 @@ for (let i = 0; i < PARTICLE_COUNT; i++) {
 }
 geometry.setAttribute("aFlowSeed", new THREE.BufferAttribute(flowSeeds, 1));
 geometry.setAttribute("aFlowOffset", new THREE.BufferAttribute(flowOffsets, 1));
+const particleDrift = createParticleDrift(seeds, flowOffsets);
+const driftAttribute = new THREE.BufferAttribute(particleDrift.offsets, 2).setUsage(THREE.DynamicDrawUsage);
+geometry.setAttribute("aDrift", driftAttribute);
 
 const material = new THREE.ShaderMaterial({
   transparent: true,
@@ -921,6 +927,7 @@ const material = new THREE.ShaderMaterial({
     attribute float aSeed;
     attribute float aFlowSeed;
     attribute float aFlowOffset;
+    attribute vec2 aDrift;
     attribute float aGradient;
     uniform float uTime;
     uniform float uPixelRatio;
@@ -977,6 +984,7 @@ const material = new THREE.ShaderMaterial({
       vec2 exitPoint = vec2(cos(exitAngle), sin(exitAngle)) * exitRadius;
       mvPosition.xy = mix(mvPosition.xy, exitPoint, exitEase);
       }
+      mvPosition.xy += aDrift * uViewSlope.x * max(-mvPosition.z, 0.1) * min(1.0, uScrollExit * 4.0);
       if (uFlyThrough >= 0.0) {
         // Loose wave lanes, never a compact geometric object. Screen-space
         // endpoints guarantee every seed starts left and finishes right.
@@ -987,18 +995,18 @@ const material = new THREE.ShaderMaterial({
         float particleT = pow(t, speedCurve);
         float startX = -1.45 - aFlowSeed * 3.20;
         float endX = 1.45 + fract(aFlowSeed * 23.70) * 2.60;
-        float x = mix(startX, endX, particleT) + aFlowOffset;
+        float x = mix(startX, endX, particleT) + aFlowOffset + (aSeed - 0.5) * 0.035 + aDrift.x;
         float phase = aFlowSeed * 6.2831853;
         float frequency = 1.10 + fract(aFlowSeed * 13.90) * 1.80;
         float amplitude = 0.07 + fract(aFlowSeed * 47.10) * 0.10;
         float aspect = min(1.0, uViewSlope.x / uViewSlope.y);
         float crest = (sin(x * 1.90 - t * 2.0) * 0.06 +
           sin(x * frequency + phase + particleT * 2.0) * amplitude) * aspect;
-        float y = -uPageProgress + crest + (fract(aFlowSeed * 67.10) - 0.5) * 0.20 * aspect;
+        float y = -uPageProgress + crest + ((fract(aFlowSeed * 67.10) - 0.5) * 0.20 + (fract(aSeed * 53.1) - 0.5) * 0.035 + aDrift.y) * aspect;
         float depth = 8.5 + cos(phase * 0.72) * 0.45 + aFlowSeed * 0.25;
         mvPosition = vec4(x * uViewSlope.x * depth,
           y * uViewSlope.y * depth, -depth, 1.0);
-        vStreamKeep = step(fract(aFlowSeed * 91.1), 0.46);
+        vStreamKeep = step(fract(aFlowSeed * 91.1), 0.30) * step(fract(aSeed * 39.7), 0.88);
 
       }
 
@@ -1459,7 +1467,9 @@ function updateParticles(delta, elapsed) {
   const introElapsed = elapsed - introStartTime;
   flowSpring = stepScrollSpring(flowSpring, pageFlowProgress, delta, !entranceMotion);
   const animated = getPageFlowState(flowSpring.value, 1, !entranceMotion);
-  revealProgress = entranceMotion ? smooth01(clamp01((introElapsed - INTRO_DURATION * .72) / (INTRO_DURATION * .28))) * revealTarget : 1;
+  const revealGoal = entranceMotion ? smooth01(clamp01((introElapsed - INTRO_DURATION * .72) / (INTRO_DURATION * .28))) * revealTarget : 1;
+  revealSpring = stepRevealSpring(revealSpring, revealGoal, delta, !entranceMotion);
+  revealProgress = revealSpring.value;
   scrollScatterProgress = animated.scatter;
   material.uniforms.uScrollExit.value = entranceMotion ? scrollScatterProgress : 0;
   flyThroughProgress = entranceMotion ? animated.flow : -1;
@@ -1692,6 +1702,7 @@ function animate(delta, elapsed) {
 
   if (entranceMotion && flyThroughProgress < 0) applyMouseImpulse();
   updateParticles(entranceMotion ? delta : 0, entranceMotion ? elapsed : 0);
+  if (particleDrift.step(delta, pageFlowProgress, pageFlowProgress > .02 || scrollScatterProgress > .001 || flyThroughProgress >= 0, !entranceMotion)) driftAttribute.needsUpdate = true;
   material.uniforms.uTime.value = flyThroughProgress >= 0 ? flowSpring.value * 8 : (entranceMotion ? elapsed : 0);
   material.uniforms.uAccentTime.value = entranceMotion && elapsed - introStartTime >= INTRO_DURATION ? elapsed : -1;
   const themeEase = 1 - Math.exp(-delta * 5.5);
