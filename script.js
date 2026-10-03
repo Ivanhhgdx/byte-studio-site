@@ -1,6 +1,6 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js";
 import { createRenderSizeSync, createSceneRuntime } from "./scene-runtime.mjs?v=20260908-1";
-import { getPageFlowState } from "./hero-scroll.mjs?v=mobile-wave-20261003-1";
+import { getPageFlowState } from "./hero-scroll.mjs?v=organic-flow-local-20261003-1";
 
 import { bootParticleScene } from "./scene-fallback.mjs?v=webgl-fallback-20261003-1";
 
@@ -963,13 +963,19 @@ const material = new THREE.ShaderMaterial({
         // Loose wave lanes, never a compact geometric object. Screen-space
         // endpoints guarantee every seed starts left and finishes right.
         float t = clamp(uFlyThrough, 0.0, 1.0);
-        // Every particle keeps a longitudinal offset throughout the flight.
-        // A 2.8-NDC ribbon cannot converge to the old thin slab at t=0.5.
-        float x = mix(-4.2, 1.4, t) + aSeed * 2.8;
-        float lane = (floor(fract(aSeed * 17.31) * 7.0) - 3.0) * 0.055;
-        float phase = x * 2.8 - t * 2.0;
-        float crest = sin(phase) * 0.16 + sin(x * 1.3 + t * 2.0) * 0.08;
-        float y = -uPageProgress + crest + lane + (fract(aSeed * 67.1) - 0.5) * 0.012;
+        // Independent, reversible trajectories: each seed has its own
+        // travel distance, velocity curve, wave phase, frequency and amplitude.
+        float speedCurve = 0.65 + fract(aSeed * 17.31) * 1.10;
+        float particleT = pow(t, speedCurve);
+        float startX = -1.45 - aSeed * 3.20;
+        float endX = 1.45 + fract(aSeed * 23.70) * 2.60;
+        float x = mix(startX, endX, particleT);
+        float phase = aSeed * 6.2831853;
+        float frequency = 1.40 + fract(aSeed * 13.90) * 2.10;
+        float amplitude = 0.09 + fract(aSeed * 47.10) * 0.16;
+        float crest = sin(x * 1.90 - t * 2.0) * 0.08 +
+          sin(x * frequency + phase + particleT * 2.0) * amplitude;
+        float y = -uPageProgress + crest + (fract(aSeed * 67.10) - 0.5) * 0.20;
         float depth = 8.5 + cos(phase * 0.72) * 0.45 + aSeed * 0.25;
         mvPosition = vec4(x * uViewSlope.x * depth,
           y * uViewSlope.y * depth, -depth, 1.0);

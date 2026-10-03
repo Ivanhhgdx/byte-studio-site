@@ -4,12 +4,18 @@ export function getPageFlowState(scrolled, heroHeight, reducedMotion=false) {
  const progress=clamp(scrolled/Math.max(heroHeight,1));
  return {progress, scatter:smooth((progress-.04)/.20), flow:reducedMotion || progress<.28 ? -1 : smooth((progress-.28)/.68)};
 }
-export function getWaveX(flow, seed) {
- return -4.2 + 5.6 * clamp(flow) + clamp(seed) * 2.8;
+const fract = x => x-Math.floor(x);
+export function getParticleFlowState(flow, seed, pageProgress=0) {
+ const t=clamp(flow), s=clamp(seed);
+ const speedCurve=.65+fract(s*17.31)*1.10;
+ const particleT=Math.pow(t,speedCurve);
+ const startX=-1.45-s*3.20, endX=1.45+fract(s*23.70)*2.60;
+ const x=startX+(endX-startX)*particleT;
+ const phase=s*Math.PI*2, frequency=1.4+fract(s*13.9)*2.1;
+ const amplitude=.09+fract(s*47.1)*.16;
+ const crest=Math.sin(x*1.9-t*2)*.08+Math.sin(x*frequency+phase+particleT*2)*amplitude;
+ const y=-clamp(pageProgress)+crest+(fract(s*67.1)-.5)*.20;
+ return {x,y,speedCurve,particleT,phase,frequency,amplitude};
 }
-export function getWaveY(flow, seed, pageProgress) {
- const x=getWaveX(flow,seed), fract=x=>x-Math.floor(x);
- const lane=(Math.floor(fract(seed*17.31)*7)-3)*.055;
- const phase=x*2.8-clamp(flow)*2;
- return -clamp(pageProgress)+Math.sin(phase)*.16+Math.sin(x*1.3+clamp(flow)*2)*.08+lane+(fract(seed*67.1)-.5)*.012;
-}
+export function getWaveX(flow, seed) {return getParticleFlowState(flow,seed).x;}
+export function getWaveY(flow, seed, pageProgress) {return getParticleFlowState(flow,seed,pageProgress).y;}
