@@ -410,9 +410,7 @@ a {
   pointer-events: var(--copy-events, none);
   transform: translate3d(-50%, var(--copy-y, 64px), 0) scale(var(--copy-scale, 0.96));
   transform-origin: 50% 100%;
-  transition:
-    opacity 80ms linear,
-    transform 80ms linear;
+  transition: none;
 }
 
 .hero-label {

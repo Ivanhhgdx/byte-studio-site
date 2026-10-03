@@ -1,6 +1,6 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js";
 import { createRenderSizeSync, createSceneRuntime } from "./scene-runtime.mjs?v=20260908-1";
-import { getPageFlowState } from "./hero-scroll.mjs?v=free-flow-20261003-1";
+import { getPageFlowState } from "./hero-scroll.mjs?v=mobile-wave-20261003-1";
 
 import { bootParticleScene } from "./scene-fallback.mjs?v=webgl-fallback-20261003-1";
 
@@ -963,13 +963,13 @@ const material = new THREE.ShaderMaterial({
         // Loose wave lanes, never a compact geometric object. Screen-space
         // endpoints guarantee every seed starts left and finishes right.
         float t = clamp(uFlyThrough, 0.0, 1.0);
-        float stagger = fract(aSeed * 43.17) * 0.30;
-        float x = mix(-1.35 - stagger, 1.35 + stagger, t);
-        float lane = aGradient * 2.0 - 1.0;
-        float phase = x * 3.2 - t * 4.0 + lane * 0.6;
-        float remaining = max(0.0, 1.0 - uPageProgress);
-        float crest = sin(phase) * 0.20 + sin(x * 1.7 + t * 2.0) * 0.09;
-        float y = -uPageProgress + (crest + lane * 0.17) * remaining;
+        // Every particle keeps a longitudinal offset throughout the flight.
+        // A 2.8-NDC ribbon cannot converge to the old thin slab at t=0.5.
+        float x = mix(-4.2, 1.4, t) + aSeed * 2.8;
+        float lane = (floor(fract(aSeed * 17.31) * 7.0) - 3.0) * 0.055;
+        float phase = x * 2.8 - t * 2.0;
+        float crest = sin(phase) * 0.16 + sin(x * 1.3 + t * 2.0) * 0.08;
+        float y = -uPageProgress + crest + lane + (fract(aSeed * 67.1) - 0.5) * 0.012;
         float depth = 8.5 + cos(phase * 0.72) * 0.45 + aSeed * 0.25;
         mvPosition = vec4(x * uViewSlope.x * depth,
           y * uViewSlope.y * depth, -depth, 1.0);
@@ -983,7 +983,8 @@ const material = new THREE.ShaderMaterial({
       vGradient = position.y * 0.18 + position.x * 0.085 + position.z * 0.065;
       if (uFlyThrough >= 0.0) vGradient = aSeed * 0.85 + aGradient * 0.15;
       float pointSize = mix(3.15 + breathing * 1.25, 4.15 + breathing * 1.35, uDarkMode);
-      gl_PointSize = pointSize * (1.0 + vImpulse * 0.40) * uPixelRatio * (6.5 / -mvPosition.z);
+      gl_PointSize = uFlyThrough >= 0.0 ? (1.6 + aSeed * 0.8) * uPixelRatio :
+        pointSize * (1.0 + vImpulse * 0.40) * uPixelRatio * (6.5 / -mvPosition.z);
       gl_Position = projectionMatrix * mvPosition;
     }
   `,
@@ -1131,7 +1132,7 @@ const resize = createRenderSizeSync(renderer, canvas, (width, height, pixelRatio
   const viewSlope = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5));
   material.uniforms.uViewSlope.value.set(viewSlope * camera.aspect, viewSlope);
   updateHeroProgress();
-}, () => window.devicePixelRatio);
+}, () => Math.min(window.devicePixelRatio || 1, canvas.clientWidth < 720 ? 1.5 : 2));
 
 function initializeScreenScatter() {
   const viewHalfHeight =
@@ -1417,8 +1418,8 @@ function updateParticles(delta, elapsed) {
   setSceneStyle(sceneWrap, "opacity", entranceMotion ? "1" : String(1 - pageFlowProgress));
   const copyExit = smooth01(clamp01(scrollScatterProgress));
   const copyOpacity = revealProgress * (1 - copyExit);
-  const copyY = Math.round(64 - revealProgress * 64 - copyExit * 140);
-  const copyScale = 0.96 + revealProgress * 0.04 - copyExit * 0.015;
+  const copyY = 64 - revealProgress * 64;
+  const copyScale = 0.96 + revealProgress * 0.04;
   const blurProgress = smooth01(clamp01(revealProgress)) * (1 - copyExit);
   const particleBlur = blurProgress * (compactLayout ? 3.2 : 4);
   const particleScale = 1 + blurProgress * 0.012;
@@ -1430,6 +1431,11 @@ function updateParticles(delta, elapsed) {
   const scale = particleScale.toFixed(4);
   setSceneStyle(sceneWrap, "--particle-filter", Number(blur) ? `blur(${blur}px)` : "none");
   setSceneStyle(sceneWrap, "--particle-transform", Number(scale) !== 1 ? `scale(${scale})` : "none");
+
+  if (flyThroughProgress >= 0) {
+    material.uniforms.uArrivalTime.value = -1;
+    return;
+  }
 
   const wasMorphing = morphProgress < 1;
   updateShapeMorph(delta);
@@ -1634,7 +1640,7 @@ function setSceneMode(mode, initialize = false) {
 function animate(delta, elapsed) {
   if (!entranceMotion) { delta = 0; elapsed = 0; }
 
-  if (entranceMotion) applyMouseImpulse();
+  if (entranceMotion && flyThroughTarget < 0) applyMouseImpulse();
   updateParticles(entranceMotion ? delta : 0, entranceMotion ? elapsed : 0);
   material.uniforms.uTime.value = flyThroughProgress >= 0 ? pageFlowProgress * 8 : (entranceMotion ? elapsed : 0);
   const themeEase = 1 - Math.exp(-delta * 5.5);

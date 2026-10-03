@@ -5,6 +5,11 @@ export function getPageFlowState(scrolled, heroHeight, reducedMotion=false) {
  return {progress, scatter:smooth((progress-.04)/.20), flow:reducedMotion || progress<.28 ? -1 : smooth((progress-.28)/.68)};
 }
 export function getWaveX(flow, seed) {
- const stagger=(seed*43.17-Math.floor(seed*43.17))*.30;
- return (-1.35-stagger)+(2.70+2*stagger)*clamp(flow);
+ return -4.2 + 5.6 * clamp(flow) + clamp(seed) * 2.8;
+}
+export function getWaveY(flow, seed, pageProgress) {
+ const x=getWaveX(flow,seed), fract=x=>x-Math.floor(x);
+ const lane=(Math.floor(fract(seed*17.31)*7)-3)*.055;
+ const phase=x*2.8-clamp(flow)*2;
+ return -clamp(pageProgress)+Math.sin(phase)*.16+Math.sin(x*1.3+clamp(flow)*2)*.08+lane+(fract(seed*67.1)-.5)*.012;
 }
