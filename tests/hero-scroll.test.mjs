@@ -1,7 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {getHeroScrollState as state,getGeometryBounds as bounds,HERO_PHASES as h} from '../hero-scroll.mjs';
-test('scroll state is deterministic and reverses without history',()=>{for(const p of [0,.2,.38,.58,.7,.86,.98,1]){const before=state(p);state(1);state(0);assert.deepEqual(state(p),before);}});
-test('scatter finishes before geometry starts',()=>{assert.ok(h.scatterEnd<h.geometryStart);assert.equal(state(.7).scatter,1);assert.equal(state(.7).geometry,-1);});
-test('geometry begins left and finishes right on mobile and desktop',()=>{for(const aspect of [390/844,1440/1000]){assert.ok(bounds(0,aspect).right<-1);assert.ok(bounds(1,aspect).left>1);assert.ok(bounds(.5,aspect).top<1);}assert.ok(h.geometryEnd<1);});
-test('reduced motion uses no geometry or running time',()=>{for(const p of [0,.38,.86,1]){assert.equal(state(p,true).geometry,-1);assert.equal(state(p,true).time,0);}assert.equal(state(0,true).copyOpacity,1);});
+import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {getPageFlowState as state,getWaveX} from '../hero-scroll.mjs';
+test('flow is reversible and independent of elapsed frames',()=>{for(const height of [620,844,1000])for(const p of [0,.1,.24,.28,.5,.8,.96,1]){const a=state(p*height,height);state(height,height);state(0,height);assert.deepEqual(state(p*height,height),a);}});
+test('scatter finishes before flow and flow ends before following section reaches top',()=>{assert.equal(state(240,1000).scatter,1);assert.equal(state(270,1000).flow,-1);assert.equal(state(960,1000).flow,1);assert.equal(state(1000,1000).flow,1);});
+test('all wave seeds start outside left and finish outside right',()=>{for(let i=0;i<1000;i++){assert.ok(getWaveX(0,i/1000)<-1);assert.ok(getWaveX(1,i/1000)>1);}});
+test('reduced motion has no travelling flow',()=>{for(const p of [0,.28,.5,1])assert.equal(state(p*844,844,true).flow,-1);});
+test('original offscreen initialization remains unchanged',()=>{const s=readFileSync(new URL('../script.js',import.meta.url),'utf8');const original=execFileSync('git',['show','170cd4a:script.js'],{encoding:'utf8'});const block=x=>x.slice(x.indexOf('function initializeScreenScatter()'),x.indexOf('function clamp01'));assert.equal(block(s),block(original));});
+test('hero does not pin native page scrolling or cancel touches',()=>{const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');const s=readFileSync(new URL('../script.js',import.meta.url),'utf8');const stage=css.match(/\.hero-stage\s*\{([^}]+)\}/)[1];assert.match(stage,/position: relative/);assert.doesNotMatch(stage,/sticky|fixed/);assert.doesNotMatch(s,/event\.preventDefault\(/);assert.match(s,/"touchmove", lockHorizontalHeroTouch, \{ passive: true \}/);});

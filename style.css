@@ -287,14 +287,14 @@ a {
 
 .hero {
   position: relative;
-  height: calc(max(160svh, 960px) + max(100svh, 620px));
-  min-height: 960px;
+  height: max(100svh, 620px);
+  min-height: 620px;
   overflow: visible;
   background: var(--black);
 }
 
 .hero-stage {
-  position: sticky;
+  position: relative;
   top: 0;
   height: 100svh;
   min-height: 620px;
@@ -1576,8 +1576,8 @@ a {
   }
 
   .hero {
-    height: calc(max(210svh, 1260px) + max(100svh, 620px));
-    min-height: 1260px;
+    height: max(100svh, 620px);
+    min-height: 620px;
   }
 
   .site-header {

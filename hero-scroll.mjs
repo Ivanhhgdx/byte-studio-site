@@ -1,19 +1,10 @@
-const clamp = value => Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
-const smooth = value => { const t = clamp(value); return t * t * t * (t * (t * 6 - 15) + 10); };
-export const HERO_PHASES = Object.freeze({ revealStart: .08, revealEnd: .38, scatterStart: .46, scatterEnd: .68, geometryStart: .74, geometryEnd: .98 });
-// No clock, previous frame, pointer or spring state enters this timeline.
-export function getHeroScrollState(progress, reducedMotion = false) {
- const p = clamp(progress), h = HERO_PHASES;
- const reveal = reducedMotion ? 1 : smooth((p - h.revealStart) / (h.revealEnd - h.revealStart));
- const scatter = smooth((p - h.scatterStart) / (h.scatterEnd - h.scatterStart));
- const geometry = p >= h.geometryStart ? smooth((p - h.geometryStart) / (h.geometryEnd - h.geometryStart)) : -1;
- return { progress:p, reveal, scatter, geometry:reducedMotion ? -1 : geometry, time:reducedMotion ? 0 : p * 8, copyOpacity:reveal * (1 - scatter) };
+const clamp = x => Math.max(0, Math.min(1, Number.isFinite(x) ? x : 0));
+const smooth = x => {const t=clamp(x);return t*t*(3-2*t);};
+export function getPageFlowState(scrolled, heroHeight, reducedMotion=false) {
+ const progress=clamp(scrolled/Math.max(heroHeight,1));
+ return {progress, scatter:smooth((progress-.04)/.20), flow:reducedMotion || progress<.28 ? -1 : smooth((progress-.28)/.68)};
 }
-// NDC bounds used by the shader: the whole knot starts/ends outside the screen.
-export function getGeometryBounds(progress, aspect) {
- const radiusY = Math.min(.58, .7 * Math.max(.01, aspect));
- const radiusX = radiusY / Math.max(.01, aspect);
- const margin = .18;
- const centerX = (-1 - radiusX - margin) + (2 + 2 * radiusX + 2 * margin) * clamp(progress);
- return { left:centerX-radiusX, right:centerX+radiusX, top:radiusY, bottom:-radiusY };
+export function getWaveX(flow, seed) {
+ const stagger=(seed*43.17-Math.floor(seed*43.17))*.30;
+ return (-1.35-stagger)+(2.70+2*stagger)*clamp(flow);
 }

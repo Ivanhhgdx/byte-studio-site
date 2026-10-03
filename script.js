@@ -1,5 +1,6 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js";
 import { createRenderSizeSync, createSceneRuntime } from "./scene-runtime.mjs?v=20260908-1";
+import { getPageFlowState } from "./hero-scroll.mjs?v=free-flow-20261003-1";
 
 const canvas = document.querySelector("#cube-canvas");
 const hero = document.querySelector(".hero");
@@ -87,6 +88,7 @@ let scrollScatterProgress = 0;
 let scrollScatterTarget = 0;
 let flyThroughProgress = 0;
 let flyThroughTarget = 0;
+let pageFlowProgress = 0;
 let introStartTime = 0;
 let introActive = true;
 let compactLayout = false;
@@ -895,6 +897,7 @@ const material = new THREE.ShaderMaterial({
     uArrivalTime: { value: -1 },
     uScrollExit: { value: 0 },
     uFlyThrough: { value: -1 },
+    uPageProgress: { value: 0 },
     uViewSlope: { value: new THREE.Vector2(1, 1) },
   },
   vertexShader: `
@@ -906,6 +909,7 @@ const material = new THREE.ShaderMaterial({
     uniform float uArrivalTime;
     uniform float uScrollExit;
     uniform float uFlyThrough;
+    uniform float uPageProgress;
     uniform vec2 uViewSlope;
     varying float vAlpha;
     varying float vGradient;
@@ -952,23 +956,20 @@ const material = new THREE.ShaderMaterial({
       vec2 exitPoint = vec2(cos(exitAngle), sin(exitAngle)) * exitRadius;
       mvPosition.xy = mix(mvPosition.xy, exitPoint, exitEase);
       }
-      if (uFlyThrough >= 0.14) {
-        // A slow, wide stream crosses the camera only after the breakup.
-        // Every particle gets its own start offset and speed, so the stream
-        // reads as a living flow instead of a compact block.
-        float streamProgress = clamp((uFlyThrough - 0.14) / 0.86, 0.0, 1.0);
-        float speed = 0.84 + fract(aSeed * 17.31) * 0.42;
-        float startOffset = fract(aSeed * 43.17) * 0.32;
-        float travel = streamProgress * speed + startOffset;
+      if (uFlyThrough >= 0.0) {
+        // Loose wave lanes, never a compact geometric object. Screen-space
+        // endpoints guarantee every seed starts left and finishes right.
+        float t = clamp(uFlyThrough, 0.0, 1.0);
+        float stagger = fract(aSeed * 43.17) * 0.30;
+        float x = mix(-1.35 - stagger, 1.35 + stagger, t);
         float lane = aGradient * 2.0 - 1.0;
-        float x = -8.0 + travel * 16.0;
-        float phase = x * 0.57 - streamProgress * 2.4;
-        float crest = sin(phase) * 0.95 + sin(x * 0.24 + streamProgress * 3.0) * 0.32;
-        float y = crest + lane * 1.42 + sin(aSeed * 31.0) * 0.12;
-        float z = -8.5 + cos(phase * 0.72) * 1.35 + lane * 0.52 +
-          cos(aSeed * 29.0) * 0.45;
-        mvPosition = vec4(x, y, z, 1.0);
-        // Leave breathing room between points during the flight only.
+        float phase = x * 3.2 - t * 4.0 + lane * 0.6;
+        float remaining = max(0.0, 1.0 - uPageProgress);
+        float crest = sin(phase) * 0.20 + sin(x * 1.7 + t * 2.0) * 0.09;
+        float y = -uPageProgress + (crest + lane * 0.17) * remaining;
+        float depth = 8.5 + cos(phase * 0.72) * 0.45 + aSeed * 0.25;
+        mvPosition = vec4(x * uViewSlope.x * depth,
+          y * uViewSlope.y * depth, -depth, 1.0);
         vStreamKeep = step(fract(aSeed * 91.1), 0.46);
       }
 
@@ -1164,23 +1165,13 @@ function clamp01(value) {
 function updateHeroProgress() {
   if (!heroStage || !hero) return;
 
-  // Keep the page scroll independent from the scene: scrolling never waits for
-  // a particle animation to finish. The final part of the hero is reserved for
-  // the left-to-right passage, but native scroll remains continuous.
-  const scrollable = Math.max(hero.offsetHeight - window.innerHeight, 1);
-  const scrolled = -hero.getBoundingClientRect().top;
-  const raw = clamp01(scrolled / scrollable);
-  // Three readable beats: copy leaves, the figure disperses, then the stream
-  // enters only after the last particles have cleared the frame.
-  const disintegrationStart = 0.48;
-  const waveStart = 0.70;
-  scrollScatterTarget = smooth01(clamp01((raw - disintegrationStart) /
-    (waveStart - disintegrationStart)));
-  flyThroughTarget = smooth01(clamp01((raw - waveStart) / (1 - waveStart)));
-  const revealStart = compactLayout ? 0.1 : 0.08;
-  const revealDuration = compactLayout ? 0.46 : 0.3;
-  const reveal = smooth01(clamp01((raw - revealStart) / revealDuration));
-  revealTarget = reveal;
+  // The next section moves immediately with native page scroll. No spacer.
+  const state = getPageFlowState(-hero.getBoundingClientRect().top, hero.offsetHeight, !entranceMotion);
+  pageFlowProgress = state.progress;
+  scrollScatterTarget = state.scatter;
+  flyThroughTarget = state.flow;
+  revealTarget = 1;
+
 }
 
 function updatePointerPosition(clientX, clientY, motionBoost = 1) {
@@ -1256,9 +1247,7 @@ function lockHorizontalHeroTouch(event) {
       touchGestureAxis = absX > absY * 1.15 ? "x" : "y";
     }
 
-    if (touchGestureAxis === "x" && event.cancelable) {
-      event.preventDefault();
-    }
+    // Native pan/pinch gestures are never cancelled for the scene.
   }
 
   updateTouchFromEvent(event);
@@ -1414,17 +1403,15 @@ function setSceneStyle(element, property, value) {
 function updateParticles(delta, elapsed) {
   let activeChaos = 0;
   let displacedCount = 0;
-  const scrollEase = 1 - Math.exp(-delta * 6.2);
-  const revealEase = 1 - Math.exp(-delta * (compactLayout ? 5.2 : 7.2));
 
-  revealProgress += (revealTarget - revealProgress) * revealEase;
-  scrollScatterProgress +=
-    (scrollScatterTarget - scrollScatterProgress) * scrollEase;
-  material.uniforms.uScrollExit.value = scrollScatterProgress;
-  // The page can move quickly, while the stream keeps its own calmer inertia.
-  const flyEase = 1 - Math.exp(-delta * 0.36);
-  flyThroughProgress += (flyThroughTarget - flyThroughProgress) * flyEase;
-  material.uniforms.uFlyThrough.value = flyThroughProgress > 0.0001 ? flyThroughProgress : -1;
+  const introElapsed = elapsed - introStartTime;
+  revealProgress = entranceMotion ? smooth01(clamp01((introElapsed - INTRO_DURATION * .72) / (INTRO_DURATION * .28))) : 1;
+  scrollScatterProgress = scrollScatterTarget;
+  material.uniforms.uScrollExit.value = entranceMotion ? scrollScatterProgress : 0;
+  flyThroughProgress = entranceMotion ? flyThroughTarget : -1;
+  material.uniforms.uFlyThrough.value = flyThroughProgress;
+  material.uniforms.uPageProgress.value = pageFlowProgress;
+  setSceneStyle(sceneWrap, "opacity", entranceMotion ? "1" : String(1 - pageFlowProgress));
   const copyExit = smooth01(clamp01(scrollScatterProgress));
   const copyOpacity = revealProgress * (1 - copyExit);
   const copyY = Math.round(64 - revealProgress * 64 - copyExit * 140);
@@ -1476,7 +1463,7 @@ function updateParticles(delta, elapsed) {
     introActive = false;
   }
   const waveTime = introTime - INTRO_DURATION;
-  material.uniforms.uArrivalTime.value = waveTime >= 0 && waveTime < 4.8 ? waveTime : -1;
+  material.uniforms.uArrivalTime.value = entranceMotion && flyThroughProgress < 0 && waveTime >= 0 && waveTime < 4.8 ? waveTime : -1;
   const breathing = 1 + Math.sin(elapsed * 0.9) * 0.055;
   const lifeDecay = Math.pow(0.9965, delta * 60);
   const radiusDecay = Math.pow(0.9982, delta * 60);
@@ -1642,10 +1629,11 @@ function setSceneMode(mode, initialize = false) {
 }
 
 function animate(delta, elapsed) {
+  if (!entranceMotion) { delta = 0; elapsed = 0; }
 
-  applyMouseImpulse();
-  updateParticles(delta, elapsed);
-  material.uniforms.uTime.value = elapsed;
+  if (entranceMotion) applyMouseImpulse();
+  updateParticles(entranceMotion ? delta : 0, entranceMotion ? elapsed : 0);
+  material.uniforms.uTime.value = flyThroughProgress >= 0 ? pageFlowProgress * 8 : (entranceMotion ? elapsed : 0);
   const themeEase = 1 - Math.exp(-delta * 5.5);
   material.uniforms.uDarkMode.value +=
     (themeBlendTarget - material.uniforms.uDarkMode.value) * themeEase;
@@ -1686,7 +1674,7 @@ window.addEventListener("scroll", updateHeroProgress, { passive: true });
 window.addEventListener("pointermove", updatePointerFromEvent, { passive: true });
 window.addEventListener("pointerup", releaseTouchPointer, { passive: true });
 window.addEventListener("touchstart", startTouchInteraction, { passive: true });
-window.addEventListener("touchmove", lockHorizontalHeroTouch, { passive: false });
+window.addEventListener("touchmove", lockHorizontalHeroTouch, { passive: true });
 window.addEventListener("touchend", releaseTouchPointer, { passive: true });
 window.addEventListener("touchcancel", releaseTouchPointer, { passive: true });
 window.addEventListener("pointerleave", () => deactivatePointer(true));
