@@ -1,6 +1,7 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js";
 import { createRenderSizeSync, createSceneRuntime } from "./scene-runtime.mjs?v=20260908-1";
-import { getPageFlowState } from "./hero-scroll.mjs?v=organic-flow-local-20261003-1";
+import { getPageFlowState } from "./hero-scroll.mjs?v=flow-refinement-20261003-1";
+import { stepScrollSpring, getCopyReturnState } from "./scroll-spring.mjs?v=flow-refinement-20261003-1";
 
 import { bootParticleScene } from "./scene-fallback.mjs?v=webgl-fallback-20261003-1";
 
@@ -92,6 +93,8 @@ let scrollScatterTarget = 0;
 let flyThroughProgress = 0;
 let flyThroughTarget = 0;
 let pageFlowProgress = 0;
+let flowSpring = { value: 0, velocity: 0 };
+let copyReturned = false;
 let introStartTime = 0;
 let introActive = true;
 let compactLayout = false;
@@ -889,12 +892,23 @@ const geometry = new THREE.BufferGeometry();
 geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage));
 geometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
 geometry.setAttribute("aGradient", new THREE.BufferAttribute(gradientValues, 1));
+// Eight samples of each short trail share one smooth wave, rather than
+// sampling discontinuous fract(seed*frequency) parameters between neighbours.
+const flowSeeds = new Float32Array(PARTICLE_COUNT);
+const flowOffsets = new Float32Array(PARTICLE_COUNT);
+for (let i = 0; i < PARTICLE_COUNT; i++) {
+  flowSeeds[i] = hash(Math.floor(i / 8), 110);
+  flowOffsets[i] = ((i % 8) / 7 - 0.5) * 0.18;
+}
+geometry.setAttribute("aFlowSeed", new THREE.BufferAttribute(flowSeeds, 1));
+geometry.setAttribute("aFlowOffset", new THREE.BufferAttribute(flowOffsets, 1));
 
 const material = new THREE.ShaderMaterial({
   transparent: true,
   depthWrite: false,
   uniforms: {
     uTime: { value: 0 },
+    uAccentTime: { value: -1 },
     uPixelRatio: { value: renderer.getPixelRatio() },
     uDarkMode: { value: 0 },
     uArrivalTime: { value: -1 },
@@ -905,9 +919,12 @@ const material = new THREE.ShaderMaterial({
   },
   vertexShader: `
     attribute float aSeed;
+    attribute float aFlowSeed;
+    attribute float aFlowOffset;
     attribute float aGradient;
     uniform float uTime;
     uniform float uPixelRatio;
+    uniform float uAccentTime;
     uniform float uDarkMode;
     uniform float uArrivalTime;
     uniform float uScrollExit;
@@ -918,6 +935,7 @@ const material = new THREE.ShaderMaterial({
     varying float vGradient;
     varying float vImpulse;
     varying float vStreamKeep;
+    varying float vAccent;
 
     void main() {
       vec3 animatedPosition = position;
@@ -963,23 +981,42 @@ const material = new THREE.ShaderMaterial({
         // Loose wave lanes, never a compact geometric object. Screen-space
         // endpoints guarantee every seed starts left and finishes right.
         float t = clamp(uFlyThrough, 0.0, 1.0);
-        // Independent, reversible trajectories: each seed has its own
-        // travel distance, velocity curve, wave phase, frequency and amplitude.
-        float speedCurve = 0.65 + fract(aSeed * 17.31) * 1.10;
+        // Coherent short trails bend along their local wave. Trail members
+        // have tiny velocity differences but retain left-to-right ordering.
+        float speedCurve = 0.65 + fract(aFlowSeed * 17.31) * 1.10 + aFlowOffset * 0.12;
         float particleT = pow(t, speedCurve);
-        float startX = -1.45 - aSeed * 3.20;
-        float endX = 1.45 + fract(aSeed * 23.70) * 2.60;
-        float x = mix(startX, endX, particleT);
-        float phase = aSeed * 6.2831853;
-        float frequency = 1.40 + fract(aSeed * 13.90) * 2.10;
-        float amplitude = 0.09 + fract(aSeed * 47.10) * 0.16;
-        float crest = sin(x * 1.90 - t * 2.0) * 0.08 +
-          sin(x * frequency + phase + particleT * 2.0) * amplitude;
-        float y = -uPageProgress + crest + (fract(aSeed * 67.10) - 0.5) * 0.20;
-        float depth = 8.5 + cos(phase * 0.72) * 0.45 + aSeed * 0.25;
+        float startX = -1.45 - aFlowSeed * 3.20;
+        float endX = 1.45 + fract(aFlowSeed * 23.70) * 2.60;
+        float x = mix(startX, endX, particleT) + aFlowOffset;
+        float phase = aFlowSeed * 6.2831853;
+        float frequency = 1.10 + fract(aFlowSeed * 13.90) * 1.80;
+        float amplitude = 0.07 + fract(aFlowSeed * 47.10) * 0.10;
+        float aspect = min(1.0, uViewSlope.x / uViewSlope.y);
+        float crest = (sin(x * 1.90 - t * 2.0) * 0.06 +
+          sin(x * frequency + phase + particleT * 2.0) * amplitude) * aspect;
+        float y = -uPageProgress + crest + (fract(aFlowSeed * 67.10) - 0.5) * 0.20 * aspect;
+        float depth = 8.5 + cos(phase * 0.72) * 0.45 + aFlowSeed * 0.25;
         mvPosition = vec4(x * uViewSlope.x * depth,
           y * uViewSlope.y * depth, -depth, 1.0);
-        vStreamKeep = step(fract(aSeed * 91.1), 0.46);
+        vStreamKeep = step(fract(aFlowSeed * 91.1), 0.46);
+
+      }
+
+      // Sparse seeded local events, never a full-frame flash. A tiny ripple
+      // travels through neighbouring samples of the same curved trail.
+      vAccent = 0.0;
+      if (uAccentTime >= 0.0) {
+        float clock = uAccentTime * 1.8 + fract(aFlowSeed * 113.7);
+        float event = floor(clock);
+        float age = fract(clock) / 1.8;
+        float gate = step(0.98, fract(sin(aFlowSeed * 913.7 + event * 71.3) * 43758.5453));
+        float origin = (floor(fract(sin(aFlowSeed * 37.1 + event) * 713.9) * 8.0) / 7.0 - 0.5) * 0.18;
+        float distance = abs(aFlowOffset - origin);
+        vAccent = gate * exp(-distance * distance * 18000.0) * exp(-age * 35.0);
+        float front = age * 0.35;
+        float ripple = gate * exp(-pow((distance - front) * 55.0, 2.0)) *
+          exp(-age * 8.0) * sin(age * 20.0);
+        mvPosition.y += ripple * 0.006 * uViewSlope.y * max(-mvPosition.z, 0.1);
       }
 
       float depthFade = smoothstep(-6.2, -2.1, mvPosition.z);
@@ -987,10 +1024,11 @@ const material = new THREE.ShaderMaterial({
 
       vAlpha = mix(0.5, 1.0, depthFade) * mix(0.94, 1.0, breathing);
       vGradient = position.y * 0.18 + position.x * 0.085 + position.z * 0.065;
-      if (uFlyThrough >= 0.0) vGradient = aSeed * 0.85 + aGradient * 0.15;
+      if (uFlyThrough >= 0.0) vGradient = aFlowSeed;
       float pointSize = mix(3.15 + breathing * 1.25, 4.15 + breathing * 1.35, uDarkMode);
       gl_PointSize = uFlyThrough >= 0.0 ? (1.6 + aSeed * 0.8) * uPixelRatio :
         pointSize * (1.0 + vImpulse * 0.40) * uPixelRatio * (6.5 / -mvPosition.z);
+      gl_PointSize *= 1.0 + vAccent * 0.65;
       gl_Position = projectionMatrix * mvPosition;
     }
   `,
@@ -1002,6 +1040,7 @@ const material = new THREE.ShaderMaterial({
     varying float vGradient;
     varying float vImpulse;
     varying float vStreamKeep;
+    varying float vAccent;
 
     void main() {
       vec2 centered = gl_PointCoord - vec2(0.5);
@@ -1024,6 +1063,7 @@ const material = new THREE.ShaderMaterial({
       vec3 lightColor = vec3(0.012, 0.013, 0.015);
       vec3 vividGradient = min(gradientColor * 1.18, vec3(1.0));
       vec3 finalColor = mix(lightColor, vividGradient, uDarkMode);
+      finalColor = mix(finalColor, vec3(1.0, 0.94, 1.0), min(0.85, vAccent));
       float finalAlpha = mix(vAlpha, min(1.0, vAlpha * 1.38), uDarkMode);
       // Boost chroma instead of whitening the points along the travelling impulse.
       float lowestChannel = min(gradientColor.r, min(gradientColor.g, gradientColor.b));
@@ -1177,10 +1217,12 @@ function updateHeroProgress() {
 
   // The next section moves immediately with native page scroll. No spacer.
   const state = getPageFlowState(-hero.getBoundingClientRect().top, hero.offsetHeight, !entranceMotion);
+  const copy = getCopyReturnState(pageFlowProgress, state.progress, copyReturned);
+  copyReturned = copy.returned;
+  revealTarget = copy.reveal;
   pageFlowProgress = state.progress;
   scrollScatterTarget = state.scatter;
   flyThroughTarget = state.flow;
-  revealTarget = 1;
 
 }
 
@@ -1415,10 +1457,12 @@ function updateParticles(delta, elapsed) {
   let displacedCount = 0;
 
   const introElapsed = elapsed - introStartTime;
-  revealProgress = entranceMotion ? smooth01(clamp01((introElapsed - INTRO_DURATION * .72) / (INTRO_DURATION * .28))) : 1;
-  scrollScatterProgress = scrollScatterTarget;
+  flowSpring = stepScrollSpring(flowSpring, pageFlowProgress, delta, !entranceMotion);
+  const animated = getPageFlowState(flowSpring.value, 1, !entranceMotion);
+  revealProgress = entranceMotion ? smooth01(clamp01((introElapsed - INTRO_DURATION * .72) / (INTRO_DURATION * .28))) * revealTarget : 1;
+  scrollScatterProgress = animated.scatter;
   material.uniforms.uScrollExit.value = entranceMotion ? scrollScatterProgress : 0;
-  flyThroughProgress = entranceMotion ? flyThroughTarget : -1;
+  flyThroughProgress = entranceMotion ? animated.flow : -1;
   material.uniforms.uFlyThrough.value = flyThroughProgress;
   material.uniforms.uPageProgress.value = pageFlowProgress;
   setSceneStyle(sceneWrap, "opacity", entranceMotion ? "1" : String(1 - pageFlowProgress));
@@ -1646,9 +1690,10 @@ function setSceneMode(mode, initialize = false) {
 function animate(delta, elapsed) {
   if (!entranceMotion) { delta = 0; elapsed = 0; }
 
-  if (entranceMotion && flyThroughTarget < 0) applyMouseImpulse();
+  if (entranceMotion && flyThroughProgress < 0) applyMouseImpulse();
   updateParticles(entranceMotion ? delta : 0, entranceMotion ? elapsed : 0);
-  material.uniforms.uTime.value = flyThroughProgress >= 0 ? pageFlowProgress * 8 : (entranceMotion ? elapsed : 0);
+  material.uniforms.uTime.value = flyThroughProgress >= 0 ? flowSpring.value * 8 : (entranceMotion ? elapsed : 0);
+  material.uniforms.uAccentTime.value = entranceMotion && elapsed - introStartTime >= INTRO_DURATION ? elapsed : -1;
   const themeEase = 1 - Math.exp(-delta * 5.5);
   material.uniforms.uDarkMode.value +=
     (themeBlendTarget - material.uniforms.uDarkMode.value) * themeEase;

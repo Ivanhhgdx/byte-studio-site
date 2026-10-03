@@ -8,7 +8,9 @@
 .portfolio-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1.5rem, 3vw, 3rem); align-items: start; }
 .portfolio-screen { min-width: 0; margin: 0; }
 .portfolio-screen-wide { grid-column: 1 / -1; }
-.portfolio-image-frame { border: 1px solid var(--line-dark); border-radius: clamp(.75rem, 1.6vw, 1.5rem); overflow: hidden; background: #fff; padding: clamp(.5rem, 1vw, 1rem); isolation: isolate; }
-.portfolio-image-frame img { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 0; object-fit: contain; }
+.portfolio-screen picture { display: block; }
+.portfolio-screen img { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 32px; }
+.portfolio-screen:not(.portfolio-screen-wide) img { max-width: 680px; margin-inline: auto; }
+.portfolio-screen:not(.portfolio-screen-wide) figcaption { max-width: 680px; margin-inline: auto; }
 .portfolio-case figcaption { margin-top: .8rem; font-size: .85rem; line-height: 1.5; color: var(--muted-dark); }
 @media (max-width: 800px) { .portfolio-heading { display: block; } .portfolio-heading .primary-button { margin-top: 1rem; } .portfolio-gallery { grid-template-columns: 1fr; } .portfolio-screen-wide { grid-column: auto; } }
