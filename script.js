@@ -1,8 +1,6 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js";
 import { createRenderSizeSync, createSceneRuntime } from "./scene-runtime.mjs?v=20260908-1";
 
-import { getHeroScrollState } from "./hero-scroll.mjs?v=scroll-geometry-20261002-1";
-
 const canvas = document.querySelector("#cube-canvas");
 const hero = document.querySelector(".hero");
 const heroStage = document.querySelector(".hero-stage");
@@ -83,9 +81,6 @@ let surfaceFlowEpoch = 0;
 let morphArmed = true;
 let morphQueued = false;
 let freshInteraction = false;
-let heroScrollProgress = 0;
-let lastRenderedSceneKey = "";
-let sceneRenderCount = 0;
 let revealProgress = 0;
 let revealTarget = 0;
 let scrollScatterProgress = 0;
@@ -895,7 +890,6 @@ const material = new THREE.ShaderMaterial({
   depthWrite: false,
   uniforms: {
     uTime: { value: 0 },
-    uReducedMotion: { value: entranceMotion ? 0 : 1 },
     uPixelRatio: { value: renderer.getPixelRatio() },
     uDarkMode: { value: 0 },
     uArrivalTime: { value: -1 },
@@ -910,7 +904,6 @@ const material = new THREE.ShaderMaterial({
     uniform float uPixelRatio;
     uniform float uDarkMode;
     uniform float uArrivalTime;
-    uniform float uReducedMotion;
     uniform float uScrollExit;
     uniform float uFlyThrough;
     uniform vec2 uViewSlope;
@@ -951,7 +944,7 @@ const material = new THREE.ShaderMaterial({
       vec4 mvPosition = modelViewMatrix * vec4(animatedPosition, 1.0);
       // Scatter in camera space: every trajectory ends beyond the viewport,
       // even while the underlying figure rotates or the screen is resized.
-      if (uScrollExit > 0.0001 && uReducedMotion < 0.5) {
+      if (uScrollExit > 0.0001) {
       float exitProgress = clamp(uScrollExit / (0.62 + aSeed * 0.32), 0.0, 1.0);
       float exitEase = exitProgress * exitProgress * (2.0 - exitProgress);
       float exitAngle = atan(mvPosition.y + 0.00001, mvPosition.x + 0.00001) + (aSeed - 0.5) * exitProgress * 0.7;
@@ -959,32 +952,30 @@ const material = new THREE.ShaderMaterial({
       vec2 exitPoint = vec2(cos(exitAngle), sin(exitAngle)) * exitRadius;
       mvPosition.xy = mix(mvPosition.xy, exitPoint, exitEase);
       }
-      if (uFlyThrough >= 0.0) {
-        // Interwoven three-lobed knot, projected in screen space. Its entire
-        // bounding box is left of the viewport at 0 and right of it at 1.
-        float t = clamp(uFlyThrough, 0.0, 1.0);
-        float aspect = uViewSlope.x / uViewSlope.y;
-        float radiusY = min(0.58, 0.7 * aspect);
-        float radiusX = radiusY / aspect;
-        float centerX = mix(-1.0 - radiusX - 0.18, 1.0 + radiusX + 0.18, t);
-        float theta = aGradient * 6.2831853 + t * 1.2;
-        float strand = floor(aSeed * 8.0);
-        float tube = (aSeed * 8.0 - strand) * 6.2831853;
-        float shell = 0.65 + 0.22 * cos(3.0 * theta + strand * 0.16);
-        float knotX = shell * cos(2.0 * theta) + 0.1 * cos(tube) * cos(2.0 * theta);
-        float knotY = shell * sin(2.0 * theta) + 0.1 * cos(tube) * sin(2.0 * theta);
-        float knotZ = 0.3 * sin(3.0 * theta) + 0.1 * sin(tube);
-        float depth = 8.0 - knotZ;
-        mvPosition = vec4((centerX + knotX * radiusX) * uViewSlope.x * depth,
-          knotY * radiusY * uViewSlope.y * depth, -depth, 1.0);
-        vStreamKeep = step(fract(aSeed * 91.1), 0.72);
+      if (uFlyThrough >= 0.14) {
+        // A slow, wide stream crosses the camera only after the breakup.
+        // Every particle gets its own start offset and speed, so the stream
+        // reads as a living flow instead of a compact block.
+        float streamProgress = clamp((uFlyThrough - 0.14) / 0.86, 0.0, 1.0);
+        float speed = 0.84 + fract(aSeed * 17.31) * 0.42;
+        float startOffset = fract(aSeed * 43.17) * 0.32;
+        float travel = streamProgress * speed + startOffset;
+        float lane = aGradient * 2.0 - 1.0;
+        float x = -8.0 + travel * 16.0;
+        float phase = x * 0.57 - streamProgress * 2.4;
+        float crest = sin(phase) * 0.95 + sin(x * 0.24 + streamProgress * 3.0) * 0.32;
+        float y = crest + lane * 1.42 + sin(aSeed * 31.0) * 0.12;
+        float z = -8.5 + cos(phase * 0.72) * 1.35 + lane * 0.52 +
+          cos(aSeed * 29.0) * 0.45;
+        mvPosition = vec4(x, y, z, 1.0);
+        // Leave breathing room between points during the flight only.
+        vStreamKeep = step(fract(aSeed * 91.1), 0.46);
       }
 
       float depthFade = smoothstep(-6.2, -2.1, mvPosition.z);
       float breathing = 0.5 + 0.5 * sin(uTime * 1.35 + aSeed * 6.28318);
 
       vAlpha = mix(0.5, 1.0, depthFade) * mix(0.94, 1.0, breathing);
-      if (uReducedMotion > 0.5) vAlpha *= 1.0 - uScrollExit;
       vGradient = position.y * 0.18 + position.x * 0.085 + position.z * 0.065;
       if (uFlyThrough >= 0.0) vGradient = aSeed * 0.85 + aGradient * 0.15;
       float pointSize = mix(3.15 + breathing * 1.25, 4.15 + breathing * 1.35, uDarkMode);
@@ -1173,9 +1164,23 @@ function clamp01(value) {
 function updateHeroProgress() {
   if (!heroStage || !hero) return;
 
+  // Keep the page scroll independent from the scene: scrolling never waits for
+  // a particle animation to finish. The final part of the hero is reserved for
+  // the left-to-right passage, but native scroll remains continuous.
   const scrollable = Math.max(hero.offsetHeight - window.innerHeight, 1);
-  heroScrollProgress = clamp01(-hero.getBoundingClientRect().top / scrollable);
-
+  const scrolled = -hero.getBoundingClientRect().top;
+  const raw = clamp01(scrolled / scrollable);
+  // Three readable beats: copy leaves, the figure disperses, then the stream
+  // enters only after the last particles have cleared the frame.
+  const disintegrationStart = 0.48;
+  const waveStart = 0.70;
+  scrollScatterTarget = smooth01(clamp01((raw - disintegrationStart) /
+    (waveStart - disintegrationStart)));
+  flyThroughTarget = smooth01(clamp01((raw - waveStart) / (1 - waveStart)));
+  const revealStart = compactLayout ? 0.1 : 0.08;
+  const revealDuration = compactLayout ? 0.46 : 0.3;
+  const reveal = smooth01(clamp01((raw - revealStart) / revealDuration));
+  revealTarget = reveal;
 }
 
 function updatePointerPosition(clientX, clientY, motionBoost = 1) {
@@ -1406,27 +1411,200 @@ function setSceneStyle(element, property, value) {
   element.style.setProperty(property, value);
 }
 
-function updateParticles() {
-  const state = getHeroScrollState(heroScrollProgress, !entranceMotion);
-  revealProgress = state.reveal;
-  scrollScatterProgress = state.scatter;
-  flyThroughProgress = state.geometry;
-  material.uniforms.uScrollExit.value = state.scatter;
-  material.uniforms.uFlyThrough.value = state.geometry;
-  material.uniforms.uArrivalTime.value = -1;
-  material.uniforms.uTime.value = state.time;
-  const copyY = entranceMotion ? 64 - state.reveal * 64 - state.scatter * 140 : 0;
-  setSceneStyle(heroStage, "--copy-opacity", state.copyOpacity.toFixed(4));
-  setSceneStyle(heroStage, "--copy-y", `${copyY.toFixed(3)}px`);
-  setSceneStyle(heroStage, "--copy-scale", entranceMotion ? (0.96 + state.reveal * 0.04).toFixed(4) : "1");
-  setSceneStyle(heroStage, "--copy-events", state.copyOpacity > .92 ? "auto" : "none");
-  const blur = entranceMotion ? state.reveal * (1 - state.scatter) * (compactLayout ? 3.2 : 4) : 0;
-  setSceneStyle(sceneWrap, "--particle-filter", blur ? `blur(${blur.toFixed(3)}px)` : "none");
-  setSceneStyle(sceneWrap, "--particle-transform", "none");
-  updateOrganicSurface(state.time);
-  positions.set(basePositions);
+function updateParticles(delta, elapsed) {
+  let activeChaos = 0;
+  let displacedCount = 0;
+  const scrollEase = 1 - Math.exp(-delta * 6.2);
+  const revealEase = 1 - Math.exp(-delta * (compactLayout ? 5.2 : 7.2));
+
+  revealProgress += (revealTarget - revealProgress) * revealEase;
+  scrollScatterProgress +=
+    (scrollScatterTarget - scrollScatterProgress) * scrollEase;
+  material.uniforms.uScrollExit.value = scrollScatterProgress;
+  // The page can move quickly, while the stream keeps its own calmer inertia.
+  const flyEase = 1 - Math.exp(-delta * 0.36);
+  flyThroughProgress += (flyThroughTarget - flyThroughProgress) * flyEase;
+  material.uniforms.uFlyThrough.value = flyThroughProgress > 0.0001 ? flyThroughProgress : -1;
+  const copyExit = smooth01(clamp01(scrollScatterProgress));
+  const copyOpacity = revealProgress * (1 - copyExit);
+  const copyY = Math.round(64 - revealProgress * 64 - copyExit * 140);
+  const copyScale = 0.96 + revealProgress * 0.04 - copyExit * 0.015;
+  const blurProgress = smooth01(clamp01(revealProgress)) * (1 - copyExit);
+  const particleBlur = blurProgress * (compactLayout ? 3.2 : 4);
+  const particleScale = 1 + blurProgress * 0.012;
+  setSceneStyle(heroStage, "--copy-opacity", copyOpacity.toFixed(3));
+  setSceneStyle(heroStage, "--copy-y", `${copyY}px`);
+  setSceneStyle(heroStage, "--copy-scale", copyScale.toFixed(3));
+  setSceneStyle(heroStage, "--copy-events", copyOpacity > 0.92 ? "auto" : "none");
+  const blur = particleBlur.toFixed(2);
+  const scale = particleScale.toFixed(4);
+  setSceneStyle(sceneWrap, "--particle-filter", Number(blur) ? `blur(${blur}px)` : "none");
+  setSceneStyle(sceneWrap, "--particle-transform", Number(scale) !== 1 ? `scale(${scale})` : "none");
+
+  const wasMorphing = morphProgress < 1;
+  updateShapeMorph(delta);
+  const morphCompleted = wasMorphing && morphProgress >= 1;
+
+  if (morphCompleted) {
+    morphArmed = true;
+    morphQueued = false;
+    freshInteraction = false;
+  }
+
+  if (morphProgress >= 1) {
+    if (currentShapeIndex === ORGANIC_SHAPE_INDEX) {
+      updateOrganicSurface(elapsed);
+    } else {
+      if (wasMorphing) {
+        surfaceFlowBlend = 0;
+        surfaceFlowEpoch = elapsed;
+      }
+
+      surfaceFlowBlend = Math.min(1, surfaceFlowBlend + delta * 0.52);
+      updateLightSurfaceFlow(Math.max(0, elapsed - surfaceFlowEpoch));
+      const flowBlend = smooth01(surfaceFlowBlend);
+      const staticShape = shapePositions[currentShapeIndex];
+
+      for (let i = 0; i < basePositions.length; i += 1) {
+        basePositions[i] = THREE.MathUtils.lerp(staticShape[i], basePositions[i], flowBlend);
+      }
+    }
+  }
+
+  const introTime = elapsed - introStartTime;
+  if (introTime >= INTRO_DURATION) {
+    introActive = false;
+  }
+  const waveTime = introTime - INTRO_DURATION;
+  material.uniforms.uArrivalTime.value = waveTime >= 0 && waveTime < 4.8 ? waveTime : -1;
+  const breathing = 1 + Math.sin(elapsed * 0.9) * 0.055;
+  const lifeDecay = Math.pow(0.9965, delta * 60);
+  const radiusDecay = Math.pow(0.9982, delta * 60);
+  const driftDecay = Math.pow(0.985, delta * 60);
+
+  for (let i = 0; i < PARTICLE_COUNT; i += 1) {
+    const offset = i * 3;
+    const life = scatterLife[i];
+    const settle = smooth01(clamp01(life));
+    const returnPull = 0.00032 + (1 - settle) * 0.00028;
+    const restX = basePositions[offset] * breathing;
+    const restY = basePositions[offset + 1] * breathing;
+    const restZ = basePositions[offset + 2] * breathing;
+
+    driftVelocities[offset] += -orbitOffsets[offset] * returnPull;
+    driftVelocities[offset + 1] += -orbitOffsets[offset + 1] * returnPull;
+    driftVelocities[offset + 2] += -orbitOffsets[offset + 2] * returnPull;
+    orbitOffsets[offset] += driftVelocities[offset] * delta * 60;
+    orbitOffsets[offset + 1] += driftVelocities[offset + 1] * delta * 60;
+    orbitOffsets[offset + 2] += driftVelocities[offset + 2] * delta * 60;
+    driftVelocities[offset] *= driftDecay;
+    driftVelocities[offset + 1] *= driftDecay;
+    driftVelocities[offset + 2] *= driftDecay;
+
+    const radius = orbitRadii[i] * settle;
+    const phase =
+      orbitPhases[i] +
+      elapsed * orbitSpeeds[i] +
+      Math.sin(elapsed * 0.12 + seeds[i] * 12.0) * 0.18;
+    const ellipse = 0.55 + seeds[i] * 0.38;
+    const orbitCosine = Math.cos(phase);
+    const orbitSine = Math.sin(phase);
+
+    const assembledX =
+      restX +
+      orbitOffsets[offset] * settle +
+      orbitAxesA[offset] * orbitCosine * radius +
+      orbitAxesB[offset] * orbitSine * radius * ellipse;
+    const assembledY =
+      restY +
+      orbitOffsets[offset + 1] * settle +
+      orbitAxesA[offset + 1] * orbitCosine * radius +
+      orbitAxesB[offset + 1] * orbitSine * radius * ellipse;
+    const assembledZ =
+      restZ +
+      orbitOffsets[offset + 2] * settle +
+      orbitAxesA[offset + 2] * orbitCosine * radius +
+      orbitAxesB[offset + 2] * orbitSine * radius * ellipse;
+    // Only the entrance follows a vortex. Its radius and velocity settle to zero.
+    let introX = assembledX;
+    let introY = assembledY;
+    let introZ = assembledZ;
+    if (introActive) {
+      const dynamicsOffset = i * 4;
+      const progress = clamp01((introTime - introDynamics[dynamicsOffset]) /
+        introDynamics[dynamicsOffset + 1]);
+      const pull = smooth01(progress);
+      const phase = seeds[i] * Math.PI * 2;
+      const angle = (1 - Math.pow(1 - progress, 2)) * Math.PI * 2 *
+        introDynamics[dynamicsOffset + 2];
+      const cosine = Math.cos(angle);
+      const sine = Math.sin(angle);
+      const startX = introPositions[offset];
+      const startY = introPositions[offset + 1];
+      const startZ = introPositions[offset + 2];
+      const eddy = Math.sin(Math.PI * progress);
+      const radialWave = 1 + eddy * Math.sin(angle * 1.7 + phase) * 0.16;
+      const swirlX = (startX * cosine - startY * sine) * radialWave +
+        eddy * Math.sin(angle * 0.8 + phase) * 0.8;
+      const swirlY = (startX * sine + startY * cosine) * radialWave +
+        eddy * Math.cos(angle * 1.1 + phase) * 0.6;
+      const swirlZ = startZ + eddy * Math.sin(angle + phase) *
+        introDynamics[dynamicsOffset + 3] * 2;
+      introX = THREE.MathUtils.lerp(swirlX, assembledX, pull);
+      introY = THREE.MathUtils.lerp(swirlY, assembledY, pull);
+      introZ = THREE.MathUtils.lerp(swirlZ, assembledZ, pull);
+    }
+
+    positions[offset] = introX;
+    positions[offset + 1] = introY;
+    positions[offset + 2] = introZ;
+
+    scatterLife[i] *= lifeDecay;
+    orbitRadii[i] *= radiusDecay;
+    activeChaos += scatterLife[i];
+
+    const effectiveDisplacement =
+      Math.hypot(orbitOffsets[offset], orbitOffsets[offset + 1], orbitOffsets[offset + 2]) *
+        settle +
+      radius;
+
+    if (
+      settle > 0.045 ||
+      effectiveDisplacement > 0.085
+    ) {
+      displacedCount += 1;
+    }
+
+  }
+
+  const displacedRatio = displacedCount / PARTICLE_COUNT;
+
+  if (
+    morphArmed &&
+    freshInteraction &&
+    morphProgress >= 1 &&
+    displacedRatio > 0.42
+  ) {
+    morphArmed = false;
+    morphQueued = true;
+    freshInteraction = false;
+  }
+
+  if (
+    morphQueued &&
+    morphCooldown <= 0 &&
+    morphProgress >= 1 &&
+    pointerSpeed < 0.16
+  ) {
+    morphQueued = false;
+    startShapeMorph();
+  }
+
+  chaosLevel += (activeChaos / PARTICLE_COUNT - chaosLevel) * 0.025;
+  pointerSpeed *= Math.pow(0.82, delta * 60);
+  pointerDeltaX *= Math.pow(0.68, delta * 60);
+  pointerDeltaY *= Math.pow(0.68, delta * 60);
   geometry.attributes.position.needsUpdate = true;
-  return state;
 }
 
 function setSceneMode(mode, initialize = false) {
@@ -1463,23 +1641,26 @@ function setSceneMode(mode, initialize = false) {
   geometry.attributes.position.needsUpdate = true;
 }
 
-function animate() {
-  const key = [heroScrollProgress, canvas.width, canvas.height, themeBlendTarget, entranceMotion].join(":");
-  // RAF remains available for resize/context restoration, but an idle scene
-  // does no geometry calculation, buffer upload or WebGL drawing.
-  if (key === lastRenderedSceneKey) return;
-  lastRenderedSceneKey = key;
-  const started = performance.now();
-  const state = updateParticles();
-  material.uniforms.uDarkMode.value = themeBlendTarget;
-  cubeGroup.rotation.set(state.time * .075, state.time * .13, Math.sin(state.time * .18) * .06);
-  cubeGroup.position.y = state.reveal * (compactLayout ? .16 : .22);
-  cubeGroup.scale.setScalar((compactLayout ? .86 : 1.02) - state.reveal * .03);
+function animate(delta, elapsed) {
+
+  applyMouseImpulse();
+  updateParticles(delta, elapsed);
+  material.uniforms.uTime.value = elapsed;
+  const themeEase = 1 - Math.exp(-delta * 5.5);
+  material.uniforms.uDarkMode.value +=
+    (themeBlendTarget - material.uniforms.uDarkMode.value) * themeEase;
+
+  cubeGroup.rotation.x += 0.075 * delta;
+  cubeGroup.rotation.y += 0.13 * delta;
+  cubeGroup.rotation.z = Math.sin(elapsed * 0.18) * 0.06;
+
+  const targetY = revealProgress * (compactLayout ? 0.16 : 0.22);
+  const targetScale = (compactLayout ? 0.86 : 1.02) - revealProgress * 0.03;
+  cubeGroup.position.y += (targetY - cubeGroup.position.y) * 0.08;
+  const nextScale = cubeGroup.scale.x + (targetScale - cubeGroup.scale.x) * 0.08;
+  cubeGroup.scale.setScalar(nextScale);
+
   renderer.render(scene, camera);
-  sceneRenderCount += 1;
-  canvas.dataset.scrollProgress = state.progress.toFixed(6);
-  canvas.dataset.sceneRenderCount = String(sceneRenderCount);
-  canvas.dataset.sceneRenderMs = (performance.now() - started).toFixed(3);
 }
 
 const sceneRuntime = createSceneRuntime({
@@ -1500,8 +1681,7 @@ function syncSceneAnimation() {
   sceneRuntime.sync();
 }
 
-canvas.addEventListener("webglcontextrestored", () => { lastRenderedSceneKey = ""; });
-window.addEventListener("resize", () => { lastRenderedSceneKey = ""; resize(); });
+window.addEventListener("resize", () => resize());
 window.addEventListener("scroll", updateHeroProgress, { passive: true });
 window.addEventListener("pointermove", updatePointerFromEvent, { passive: true });
 window.addEventListener("pointerup", releaseTouchPointer, { passive: true });
@@ -1527,7 +1707,6 @@ updateHeroProgress();
 const heroVisibilityObserver = new IntersectionObserver(
   ([entry]) => {
     heroInView = entry.isIntersecting;
-    lastRenderedSceneKey = "";
     if (heroInView && videoIsPlaying) {
       pageVideos.forEach((video) => video.pause());
       videoIsPlaying = false;
